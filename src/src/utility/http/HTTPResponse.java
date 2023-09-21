@@ -48,6 +48,28 @@ public class HTTPResponse {
         return this;
     }
 
+    public String build() {
+        StringBuilder message = new StringBuilder();
+
+        // Add request line
+        message.append(String.format("HTTP/%s %s %s\r\n", version, statusCode, reasonPhrase));
+
+        // Add headers
+        if (!header.isEmpty()) {
+            StringBuilder requestHeader = new StringBuilder();
+            for (Map.Entry<String, String> entry : header.entrySet()) {
+                requestHeader.append(String.format("%s: %s\r\n", entry.getKey(), entry.getValue()));
+            }
+            message.append(requestHeader);
+        }
+        message.append("\r\n");
+        // Add body
+        if (body != null) {
+            message.append(body);
+        }
+        return message.toString();
+    }
+
     public static HTTPResponse fromMessage(String message) {
         String[] components = message.split("\r\n");
         String responseLine = components[0];
