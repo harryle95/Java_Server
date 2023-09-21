@@ -17,10 +17,12 @@ public class GreetClient {
         in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
     }
 
-    public String sendMessage(String msg) throws IOException {
+    public void sendMessage(String msg) {
         out.println(msg);
-        String resp = in.readLine();
-        return resp;
+    }
+
+    public String getResponse() throws IOException {
+        return in.readLine();
     }
 
     public void stopConnection() throws IOException {
