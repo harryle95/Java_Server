@@ -2,8 +2,7 @@ package utility.http;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ArgumentsSource;
-import org.junit.jupiter.params.provider.CsvSource;
+
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -53,8 +52,6 @@ class HTTPRequestTest {
     }
 
 
-
-
     @Test
     void buildPUT2() {
         String message = new HTTPRequest("1.1").
@@ -89,7 +86,7 @@ class HTTPRequestTest {
             "PUT localhost:8080/data HTTP/1.1\r\nAccept: application/json\r\nContent-Length: 12\r\n\r\n{Animal: Dog}",
             "PUT /data HTTP/1.1\r\nHost: localhost:8080\r\nAccept: application/json\r\nContent-Length: 12\r\n\r\n{Animal: Dog}"
     })
-    void fromMessage(String message){
+    void fromMessage(String message) {
         HTTPRequest request = HTTPRequest.fromMessage(message);
         assertEquals(message, request.build());
     }
