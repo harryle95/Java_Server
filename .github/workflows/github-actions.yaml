@@ -1,18 +1,16 @@
 name: AggregationServer
 
-on: [push]
+on: [ push ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: setup JDK 11
-        uses: actions/setup-java@2
+      - name: Setup Java JDK
+        uses: actions/setup-java@v3.13.0
         with:
-          java-version: '11'
-          distribution: "temurin"
-          cache: gradle
-
+          distribution: 'temurin' # See 'Supported distributions' for available options
+          java-version: '17'
       - name: run test
         run: make run_test
