@@ -10,55 +10,21 @@ import java.util.Scanner;
 
 public class GreetServer {
     private ServerSocket serverSocket;
-    private Socket clientSocket;
-    private PrintWriter out;
-    private BufferedReader in;
 
     public void run(int port) throws IOException {
         serverSocket = new ServerSocket(port);
+        serverSocket.setReuseAddress(true);
         System.out.println("Server listening at port: " + port);
     }
 
     public void start() throws IOException {
-        try (
-                Socket clientSocket = serverSocket.accept();
-                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));) {
-
-
-            System.out.println("Spawning a new socket: " + clientSocket.getLocalPort());
-            System.out.println("Accepting Connection from: " + clientSocket.getRemoteSocketAddress());
-            String clientInput, serverInput;
-            Scanner scanner = new Scanner(System.in);
-            while ((clientInput = in.readLine()) != null) {
-                if (!clientInput.isEmpty())
-                    System.out.println(">>" + clientInput);
-                if ((serverInput = scanner.nextLine()) != null) {
-                    out.println(serverInput);
-                    out.flush();
-                    if (serverInput.equals("exit")) {
-                        break;
-                    }
-                }
-                if (clientInput.equals("exit")) {
-                    break;
-                }
-            }
-            scanner.close();
-        } catch (SocketException e){
-            System.out.println("Connection aborted. Client is disconnected");
-        }
-        catch (IOException e) {
-            throw new RuntimeException(e);
+        while (true) {
+            Socket clientSocket = serverSocket.accept();
+            ClientHandler handler = new ClientHandler(clientSocket);
+            new Thread(handler).start();
         }
     }
 
-    public void stop() throws IOException {
-        in.close();
-        out.close();
-        clientSocket.close();
-        serverSocket.close();
-    }
 
     public static void main(String[] args) {
         int port;
@@ -76,8 +42,48 @@ public class GreetServer {
         } catch (BindException e) {
             System.out.println("Port already in use: " + e.getMessage());
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
 
+    }
+}
+
+class ClientHandler implements Runnable {
+    private final Socket clientSocket;
+
+    public ClientHandler(Socket socket) {
+        this.clientSocket = socket;
+    }
+
+    @Override
+    public void run() {
+        try (
+                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        ) {
+            System.out.println("Spawning a new socket: " + clientSocket.getLocalPort());
+            System.out.println("Accepting Connection from: " + clientSocket.getRemoteSocketAddress());
+            String clientInput, serverInput;
+            while (true) {
+                clientInput = in.readLine();
+                if ((clientInput == null) | (clientInput != null && clientInput.equals("exit"))) {
+                    break;
+                }
+                if (!clientInput.isEmpty()) {
+                    System.out.println(">>" + clientInput);
+                    out.println(clientInput);
+                }
+            }
+        } catch (SocketException e) {
+            System.out.println("Connection aborted. Client is disconnected");
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                clientSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
