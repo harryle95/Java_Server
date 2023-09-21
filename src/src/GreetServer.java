@@ -61,8 +61,13 @@ class ClientHandler implements Runnable {
                 PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
                 BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         ) {
+            Thread currentThread = Thread.currentThread();
+            String name = currentThread.getName();
+            long id = currentThread.getId();
+            String threadInfo = name + "." + String.valueOf(id);
             System.out.println("Spawning a new socket: " + clientSocket.getLocalPort());
             System.out.println("Accepting Connection from: " + clientSocket.getRemoteSocketAddress());
+            System.out.println("ThreadID: " + threadInfo);
             String clientInput, serverInput;
             while (true) {
                 clientInput = in.readLine();
@@ -70,7 +75,7 @@ class ClientHandler implements Runnable {
                     break;
                 }
                 if (!clientInput.isEmpty()) {
-                    System.out.println(">>" + clientInput);
+                    System.out.println(threadInfo+ ">>" + clientInput);
                     out.println(clientInput);
                 }
             }
