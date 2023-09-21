@@ -77,14 +77,26 @@ public class HTTPResponse {
         String[] responseLineComponents = responseLine.split(" ");
         version = responseLineComponents[0].split("/")[1];
         statusCode = responseLineComponents[1];
-        reasonPhrase = responseLineComponents[2];
+
+        // Get reason phrase
+        int index = 2;
+        StringBuilder reasonBuilder = new StringBuilder();
+        for (index = 2; index < responseLineComponents.length; index++) {
+            reasonBuilder.append(responseLineComponents[index]);
+            reasonBuilder.append(" ");
+        }
+        reasonPhrase = reasonBuilder.toString().trim();
+        // Get Header
+
         Map<String, String> header = new LinkedHashMap<>();
-        int index = 1;
+        index = 1;
         while (index < components.length && !components[index].isEmpty()) {
             String[] headerLine = components[index].split(": ");
             header.put(headerLine[0], headerLine[1]);
             index += 1;
         }
+
+        // Get Body
         if (index == components.length | components[components.length - 1].isEmpty())
             body = null;
         else
