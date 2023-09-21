@@ -71,6 +71,7 @@ public class HTTPResponse {
     }
 
     public static HTTPResponse fromMessage(String message) {
+        int index;
         String[] components = message.split("\r\n");
         String responseLine = components[0];
         String statusCode, reasonPhrase, version, body;
@@ -79,7 +80,7 @@ public class HTTPResponse {
         statusCode = responseLineComponents[1];
 
         // Get reason phrase
-        int index = 2;
+
         StringBuilder reasonBuilder = new StringBuilder();
         for (index = 2; index < responseLineComponents.length; index++) {
             reasonBuilder.append(responseLineComponents[index]);
