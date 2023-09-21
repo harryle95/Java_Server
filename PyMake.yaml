@@ -1,0 +1,10 @@
+run_client:
+  var:
+    basic:
+      URL: localhost:8080
+      ID: 1f34
+      OUTDIR: out/production/src
+      CLASSDIR: src/src
+  cmd:
+    - javac -cp $(CLASSDIR) $(CLASSDIR)/GETClient.java -d $(OUTDIR)
+    - java -cp $(OUTDIR) GETClient $(URL) $(ID)
