@@ -22,4 +22,5 @@ run_test: compile_utility compile_test
 
 .PHONY = clean
 clean:
+	rm -rf out
 	clear
