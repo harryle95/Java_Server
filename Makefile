@@ -1,18 +1,26 @@
-OUTDIR = out/production/src
+OUTDIR = out/production/Java_Server
+TESTOUTDIR = out/test
 CLASSDIR = src/src
+UTILDIR = src/src/utility
+TESTDIR  = src/test
+JUNITJAR = jar_files
+JARFILE = junit-platform-console-standalone-1.9.3.jar
 
-compile_server:
-	javac $(CLASSDIR)/GreetServer.java -d $(OUTDIR)
+compile_utility:
+	find $(UTILDIR) -name "*.java" > sources.txt
+	javac -d $(OUTDIR) -cp $(CLASSDIR) @sources.txt
+	rm sources.txt
 
-compile_client:
-	javac -cp $(CLASSDIR) $(CLASSDIR)/GETClient.java -d $(OUTDIR)
+compile_test:
+	find $(TESTDIR) -name "*.java" > sources.txt
+	javac -d $(TESTOUTDIR) -cp $(JUNITJAR)/*:$(CLASSDIR) @sources.txt
+	rm sources.txt
 
-run_server: compile_server
-	java -cp $(OUTDIR) GreetServer
+run_test: compile_utility compile_test
+	java -jar $(JUNITJAR)/$(JARFILE) -cp $(TESTOUTDIR) -cp $(OUTDIR) --scan-classpath
 
-run_client: compile_client
-	java -cp $(OUTDIR) GETClient
 
 .PHONY = clean
 clean:
+	rm -rf out
 	clear

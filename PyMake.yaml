@@ -1,10 +1,34 @@
-run_client:
+# TO RUN CMD ON WINDOWS
+compile_utility:
   var:
     basic:
-      URL: localhost:8080
-      ID: 1f34
-      OUTDIR: out/production/src
+      OUTDIR: out/production/Java_Server
       CLASSDIR: src/src
+      UTILDIR: .\src\src\utility\
   cmd:
-    - javac -cp $(CLASSDIR) $(CLASSDIR)/GETClient.java -d $(OUTDIR)
-    - java -cp $(OUTDIR) GETClient $(URL) $(ID)
+    - cd $(UTILDIR) && dir /s /B *.java > ..\..\..\sources.txt
+    - javac -d $(OUTDIR) -cp $(CLASSDIR) @sources.txt
+    - del sources.txt
+
+compile_test:
+  var:
+    basic:
+      OUTDIR: out/test
+      CLASSDIR: src/src
+      TESTDIR: src/test
+      JUNITJAR: jar_files/
+  cmd:
+    - cd $(TESTDIR) && dir /s /B *.java > ..\..\sources.txt
+    - javac -d $(OUTDIR) -cp "$(JUNITJAR)/*;$(CLASSDIR)" @sources.txt
+    - del sources.txt
+
+run_test:
+  var:
+    basic:
+      JUNITJAR: jar_files/junit-platform-console-standalone-1.9.3.jar
+      TESTPATH: out/test
+      CLASSPATH: out/production/Java_Server
+  cmd:
+    - pymake run compile_utility
+    - pymake run compile_test
+    - java -jar $(JUNITJAR) -cp $(TESTPATH) -cp (CLASSPATH) --scan-classpath
