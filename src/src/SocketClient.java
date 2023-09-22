@@ -10,15 +10,24 @@ public abstract class SocketClient {
     PrintWriter out;
     BufferedReader in;
 
-    private String serverName;
+    public void setHostname(String hostname) {
+        this.hostname = hostname;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    private String hostname;
+
 
     private int port;
 
     public SocketClient(String[] argv) {
     }
 
-    public String getServerName() {
-        return serverName;
+    public String getHostname() {
+        return hostname;
     }
 
     public int getPort() {
@@ -27,11 +36,11 @@ public abstract class SocketClient {
 
     public void connect() {
         try {
-            clientSocket = new Socket(serverName, port);
+            clientSocket = new Socket(hostname, port);
             out = new PrintWriter(clientSocket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         } catch (UnknownHostException e) {
-            throw new RuntimeException("No host at " + serverName + ":" + port);
+            throw new RuntimeException("No host at " + hostname + ":" + port);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

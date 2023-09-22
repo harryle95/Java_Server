@@ -1,41 +1,41 @@
+import utility.domain.GETClientParser;
+import utility.domain.GETServerInformation;
+import utility.http.HTTPRequest;
+
 public class GETClient extends SocketClient {
     private String stationID;
 
-    public GETClient(String URL) {
-        super(URL);
+    public GETClient(String[] argv) {
+        super(argv);
+        GETClientParser parser = new GETClientParser();
+        GETServerInformation info = parser.parse(argv);
+        setHostname(info.hostname);
+        setPort(info.port);
+        setStationID(info.stationID);
     }
 
-    public GETClient(String URL, String stationID) {
-        super(URL);
+
+    public String getStationID() {
+        return stationID;
+    }
+
+    public void setStationID(String stationID) {
         this.stationID = stationID;
     }
 
     public String formatMessage() {
-        String request = "GET /";
+        HTTPRequest request = new HTTPRequest("1.1").setMethod("GET");
+
         if (stationID == null)
-            request = request + " HTTP/1.1\r\n";
+            request.setURI("/");
         else
-            request = request + stationID + " HTTP/1.1\r\n";
+            request.setURI("/" + stationID);
 
         //Add Hostname
-        request = request + "Host: " + getServerName() + ":" + getPort() + "\r\n";
+        request.setHeader("Host", getHostname()+":"+getPort());
 
         //Accept Json
-        request = request + "Accept: application/json\r\n";
-        return request;
-    }
-
-    public static void main(String[] argv) {
-        GETClient client;
-        System.out.println(argv.length);
-        if (argv.length == 1) {
-            System.out.println(argv[0]);
-            client = new GETClient(argv[0]);
-        }else if (argv.length == 2) {
-            client = new GETClient(argv[0], argv[1]);
-        } else {
-            throw new RuntimeException("Usage GETClient URL [stationID]");
-        }
-        System.out.println(client.formatMessage());
+        request.setHeader("Accept", "application/json");
+        return request.build();
     }
 }
