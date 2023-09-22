@@ -1,19 +1,27 @@
 package utility.json;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.Map;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ParserTest {
     Parser parser;
+    private Path workDir;
+
     @BeforeEach
-    void setUp(){
+    void initPath() {
+        workDir = Path.of("", "src/test/utility/json/resources");
+    }
+
+    @BeforeEach
+    void setUp() {
         parser = new Parser();
     }
 
@@ -40,6 +48,7 @@ class ParserTest {
         parser.parseString(input);
         assertEquals(input, parser.toString());
     }
+
     @ParameterizedTest
     @ValueSource(strings = {
             "{\n\"id\": \"A0\",\n\"lat\": -34.9,\n\"lat\": -35.9\n}",
@@ -50,5 +59,16 @@ class ParserTest {
     void testParseInvalid(String input) {
         parser.parseString(input);
         assertEquals(1, parser.size());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"file1.txt", "file2.txt", "file3.txt", "file4.txt",
+            "file5.txt"})
+    void testParseFile(String fileName) throws IOException {
+        Path filePath = workDir.resolve(fileName);
+        File targetFile = new File(String.valueOf(filePath));
+        parser.parseFile(targetFile);
+        Path expFilePath = workDir.resolve("exp" + fileName);
+        assertEquals(String.join("\n", Files.readAllLines(expFilePath)), parser.toString());
     }
 }
