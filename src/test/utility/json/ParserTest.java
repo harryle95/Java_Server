@@ -65,7 +65,7 @@ class ParserTest {
             "oneID.txt",
             "twoID.txt",
             "twoIDNotInOrder.txt",
-            "secondMissingID.txt",
+            "secondNoID.txt",
             "firstMissingID.txt"
     })
     void testParseFile(String fileName) throws IOException {
