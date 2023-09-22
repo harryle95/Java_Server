@@ -43,7 +43,7 @@ public class WeatherData {
         String TS;
         if ((TS = String.valueOf(fields.get("local_date_time_full"))) != null) {
             try {
-                Float.parseFloat(TS);
+                Long.parseUnsignedLong(TS);
                 return true;
             } catch (Exception e) {
                 return false;
@@ -52,8 +52,8 @@ public class WeatherData {
         return false;
     }
 
-    public float getTS() {
-        return (float) fields.get("local_date_time_full");
+    public long getTS() {
+        return Long.parseUnsignedLong((String) fields.get("local_date_time_full"));
     }
 
     public void clear() {

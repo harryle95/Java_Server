@@ -152,8 +152,8 @@ public class Parser {
                 }
                 // If both old and new has DT, choose the one with higher timestamp
                 if (oldData.hasValidTS() && data.hasValidTS()) {
-                    float oldTS = oldData.getTS();
-                    float newTS = data.getTS();
+                    long oldTS = oldData.getTS();
+                    long newTS = data.getTS();
                     if (newTS > oldTS) {
                         container.put(id, data);
                     }
