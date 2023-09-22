@@ -50,6 +50,10 @@ public class WeatherData {
         return fields.isEmpty();
     }
 
+    public boolean equals(WeatherData object) {
+        return fields.equals(object.fields);
+    }
+
     public String toString() {
         StringBuilder builder = new StringBuilder("{\n");
         for (Map.Entry<String, Object> entry : fields.entrySet()) {
