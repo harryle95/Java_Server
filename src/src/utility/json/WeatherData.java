@@ -1,9 +1,6 @@
 package utility.json;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class WeatherData {
     public final List<String> numericFields;
@@ -50,24 +47,25 @@ public class WeatherData {
         return fields.isEmpty();
     }
 
-    public boolean equals(WeatherData object) {
-        return fields.equals(object.fields);
-    }
-
     public String toString() {
         StringBuilder builder = new StringBuilder("{\n");
-        for (Map.Entry<String, Object> entry : fields.entrySet()) {
+        Iterator<Map.Entry<String, Object>> iterator = fields.entrySet().iterator();
+
+        while (iterator.hasNext()) {
+            Map.Entry<String, Object> entry = iterator.next();
             if (entry.getValue() instanceof Float)
-                builder.append(String.format("\"%s\": %.1f,\n", entry.getKey(),
+                builder.append(String.format("\"%s\": %.1f", entry.getKey(),
                         entry.getValue()));
             else if (entry.getValue() instanceof Integer)
-                builder.append(String.format("\"%s\": %d,\n", entry.getKey(),
+                builder.append(String.format("\"%s\": %d", entry.getKey(),
                         entry.getValue()));
             else
-                builder.append(String.format("\"%s\": \"%s\",\n", entry.getKey(),
+                builder.append(String.format("\"%s\": \"%s\"", entry.getKey(),
                         entry.getValue()));
+            if (iterator.hasNext())
+                builder.append(",\n");
         }
-        builder.append("}");
+        builder.append("\n}");
         return builder.toString();
     }
 
