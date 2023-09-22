@@ -10,9 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Parser {
-    private final Pattern pattern = Pattern.compile(
-            "\"(\\w+)\": ?(\"[^\"]*\"|[^,\\n}]+),?$"
-    );
+
     private Map<String, WeatherData> container;
     private WeatherData data;
 
@@ -34,12 +32,22 @@ public class Parser {
         return container.size();
     }
 
-    public void parseFile(String fileName) throws FileNotFoundException {
+    public void parseFile(File jsonFile) {
+        Pattern pattern = Pattern.compile(
+                "(\\w+): ?([^\n]+) ?$"
+        );
         clear();
-        File jsonFile = new File(fileName);
-        Scanner reader = new Scanner(jsonFile);
-        while (reader.hasNextLine()){
-            parseLine(reader.nextLine());
+        String message;
+        Scanner reader;
+        try {
+            reader = new Scanner(jsonFile);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException("File not found.");
+        }
+
+        while (reader.hasNextLine()) {
+            message = reader.nextLine();
+            parseLine(message, pattern);
         }
         // Put the last item if valid
         if (data.containsKey("id"))
@@ -47,17 +55,20 @@ public class Parser {
     }
 
     public void parseString(String message) {
+        Pattern pattern = Pattern.compile(
+                "\"(\\w+)\": ?(\"[^\"]*\"|[^,\\n}]+),?$"
+        );
         clear();
         String[] splitMessage = message.split("\n");
         for (String line : splitMessage) {
-            parseLine(line);
+            parseLine(line, pattern);
         }
         // Put the last item if valid
         if (data.containsKey("id"))
             container.put(data.getID(), data);
     }
 
-    private void parseLine(String message) {
+    private void parseLine(String message, Pattern pattern) {
         Matcher matcher = pattern.matcher(message);
         while (matcher.find()) {
             String key = matcher.group(1);
