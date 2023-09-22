@@ -35,17 +35,10 @@ public class WeatherData {
         return fields.containsKey(key);
     }
 
-    public Object get(String key) {
-        return fields.get(key);
+    public String getID(){
+        return (String) fields.get("id");
     }
 
-    public int size() {
-        return fields.size();
-    }
-
-    public boolean isEmpty() {
-        return fields.isEmpty();
-    }
 
     public String toString() {
         StringBuilder builder = new StringBuilder("{\n");
