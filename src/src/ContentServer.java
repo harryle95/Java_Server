@@ -2,11 +2,9 @@ import utility.domain.ContentServerInformation;
 import utility.domain.ContentServerParser;
 import utility.http.HTTPRequest;
 import utility.json.Parser;
-import utility.json.WeatherData;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Map;
 
 public class ContentServer extends SocketClient {
     private String fileName;
