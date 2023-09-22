@@ -35,11 +35,28 @@ public class WeatherData {
         return fields.containsKey(key);
     }
 
-    public String getID(){
+    public String getID() {
         return (String) fields.get("id");
     }
 
-    public void clear(){
+    public boolean hasValidTS() {
+        String TS;
+        if ((TS = String.valueOf(fields.get("local_date_time_full"))) != null) {
+            try {
+                Float.parseFloat(TS);
+                return true;
+            } catch (Exception e) {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    public float getTS() {
+        return (float) fields.get("local_date_time_full");
+    }
+
+    public void clear() {
         fields.clear();
     }
 

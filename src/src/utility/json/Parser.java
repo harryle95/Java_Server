@@ -146,18 +146,14 @@ public class Parser {
             if (container.containsKey(id)) {
                 WeatherData oldData = container.get(id);
                 // If old data has no TS and new data has, use new data
-                if (!oldData.containsKey("local_date_time_full") & data.containsKey(
-                        "local_date_time_full")) {
+                if (!oldData.hasValidTS() & data.hasValidTS()) {
                     container.put(id, data);
                     return;
                 }
                 // If both old and new has DT, choose the one with higher timestamp
-                if (oldData.containsKey("local_date_time_full") && data.containsKey(
-                        "local_date_time_full")) {
-                    float oldTS = Float.parseFloat((String) oldData.get(
-                            "local_date_time_full"));
-                    float newTS = Float.parseFloat((String) data.get(
-                            "local_date_time_full"));
+                if (oldData.hasValidTS() && data.hasValidTS()) {
+                    float oldTS = oldData.getTS();
+                    float newTS = data.getTS();
                     if (newTS > oldTS) {
                         container.put(id, data);
                     }
