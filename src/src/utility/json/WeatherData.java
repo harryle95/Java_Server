@@ -40,16 +40,13 @@ public class WeatherData {
     }
 
     public boolean hasValidTS() {
-        String TS;
-        if ((TS = String.valueOf(fields.get("local_date_time_full"))) != null) {
-            try {
-                Long.parseUnsignedLong(TS);
-                return true;
-            } catch (Exception e) {
-                return false;
-            }
+        String TS = String.valueOf(fields.get("local_date_time_full"));
+        try {
+            Long.parseUnsignedLong(TS);
+            return true;
+        } catch (Exception e) {
+            return false;
         }
-        return false;
     }
 
     public long getTS() {
