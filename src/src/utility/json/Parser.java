@@ -1,18 +1,63 @@
 package utility.json;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Parser {
-    public static final Pattern pattern = Pattern.compile(
-            "\"(\\w+)\": ?(\"[^\"]*\"|[^,\\n}]+)(,|\\n|})"
+    private final Pattern pattern = Pattern.compile(
+            "\"(\\w+)\": ?(\"[^\"]*\"|[^,\\n}]+),?$"
     );
+    private Map<String, WeatherData> container;
+    private WeatherData data;
 
-    public static Map<String, WeatherData> parseString(String message) {
-        Map<String, WeatherData> container = new LinkedHashMap<>();
-        WeatherData data = new WeatherData();
+    public Parser() {
+        container = new LinkedHashMap<>();
+        data = new WeatherData();
+    }
+
+    public void clear() {
+        container.clear();
+        data.clear();
+    }
+
+    public WeatherData get(String key){
+        return container.get(key);
+    }
+
+    public int size(){
+        return container.size();
+    }
+
+    public void parseFile(String fileName) throws FileNotFoundException {
+        clear();
+        File jsonFile = new File(fileName);
+        Scanner reader = new Scanner(jsonFile);
+        while (reader.hasNextLine()){
+            parseLine(reader.nextLine());
+        }
+        // Put the last item if valid
+        if (data.containsKey("id"))
+            container.put(data.getID(), data);
+    }
+
+    public void parseString(String message) {
+        clear();
+        String[] splitMessage = message.split("\n");
+        for (String line : splitMessage) {
+            parseLine(line);
+        }
+        // Put the last item if valid
+        if (data.containsKey("id"))
+            container.put(data.getID(), data);
+    }
+
+    private void parseLine(String message) {
         Matcher matcher = pattern.matcher(message);
         while (matcher.find()) {
             String key = matcher.group(1);
@@ -31,13 +76,20 @@ public class Parser {
             // Put Value
             data.put(key, value);
         }
-        // Put the last item if valid
-        if (data.containsKey("id"))
-            container.put(data.getID(), data);
-        return container;
     }
 
-    public WeatherData parseFile(String fileName) {
-        return null;
+    public String toString() {
+        StringBuilder builder = new StringBuilder("{\n");
+        Iterator<Map.Entry<String, WeatherData>> iterator =
+                container.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, WeatherData> entry = iterator.next();
+            builder.append(entry.getValue().toString());
+            if (iterator.hasNext())
+                builder.append(",\n");
+        }
+        builder.append("\n}");
+        return builder.toString();
     }
+
 }
