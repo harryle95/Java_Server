@@ -6,7 +6,6 @@ public class GETClient extends SocketClient {
     private String stationID;
 
     public GETClient(String[] argv) {
-        super(argv);
         GETClientParser parser = new GETClientParser();
         GETServerInformation info = parser.parse(argv);
         setHostname(info.hostname);
@@ -23,7 +22,7 @@ public class GETClient extends SocketClient {
         this.stationID = stationID;
     }
 
-    public String formatMessage() {
+    public HTTPRequest formatMessage() {
         HTTPRequest request = new HTTPRequest("1.1").setMethod("GET");
 
         if (stationID == null)
@@ -36,6 +35,6 @@ public class GETClient extends SocketClient {
 
         //Accept Json
         request.setHeader("Accept", "application/json");
-        return request.build();
+        return request;
     }
 }
