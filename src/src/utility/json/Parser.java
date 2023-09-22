@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 
 public class Parser {
 
-    private Map<String, WeatherData> container;
+    private final Map<String, WeatherData> container;
     private WeatherData data;
 
     public Parser() {
