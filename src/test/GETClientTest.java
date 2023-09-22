@@ -13,14 +13,31 @@ class GETClientTest {
             "http://localhost.com:8080 data",
             "http://localhost.com.au:8080 data",
     })
-    void testCorrectFormatMessage(String input) {
+    void testIDProvided(String input) {
         GETClient client = new GETClient(input.split(" "));
         assertEquals("""
                 GET /data HTTP/1.1\r
                 Host: localhost:8080\r
                 Accept: application/json\r
                 \r
-                """, client.formatMessage());
+                """, client.formatMessage().build());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "localhost:8080",
+            "http://localhost:8080",
+            "http://localhost.com:8080",
+            "http://localhost.com.au:8080",
+    })
+    void testNoID(String input) {
+        GETClient client = new GETClient(input.split(" "));
+        assertEquals("""
+                GET / HTTP/1.1\r
+                Host: localhost:8080\r
+                Accept: application/json\r
+                \r
+                """, client.formatMessage().build());
     }
 
     @ParameterizedTest
