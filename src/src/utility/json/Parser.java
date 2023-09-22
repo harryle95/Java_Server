@@ -2,10 +2,10 @@ package utility.json;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,42 +24,33 @@ public class Parser {
         data.clear();
     }
 
-    public WeatherData get(String key){
+    public WeatherData get(String key) {
         return container.get(key);
     }
 
-    public int size(){
+    public int size() {
         return container.size();
     }
 
-    public void parseFile(File jsonFile) {
+    public void parseFile(Path filePath) throws IOException {
+
         Pattern pattern = Pattern.compile(
                 "(\\w+): ?([^\n]+) ?$"
         );
-        clear();
-        String message;
-        Scanner reader;
-        try {
-            reader = new Scanner(jsonFile);
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException("File not found.");
-        }
-
-        while (reader.hasNextLine()) {
-            message = reader.nextLine();
-            parseLine(message, pattern);
-        }
-        // Put the last item if valid
-        if (data.containsKey("id"))
-            container.put(data.getID(), data);
+        List<String> splitMessage = Files.readAllLines(filePath);
+        parseString(splitMessage, pattern);
     }
 
-    public void parseString(String message) {
+    public void parseMessage(String message) {
         Pattern pattern = Pattern.compile(
                 "\"(\\w+)\": ?(\"[^\"]*\"|[^,\\n}]+),?$"
         );
+        List<String> splitMessage = List.of(message.split("\n"));
+        parseString(splitMessage, pattern);
+    }
+
+    private void parseString(List<String> splitMessage, Pattern pattern) {
         clear();
-        String[] splitMessage = message.split("\n");
         for (String line : splitMessage) {
             parseLine(line, pattern);
         }
