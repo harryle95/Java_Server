@@ -58,7 +58,7 @@ public class WeatherData {
         StringBuilder builder = new StringBuilder("{\n");
         for (Map.Entry<String, Object> entry : fields.entrySet()) {
             if (entry.getValue() instanceof Float)
-                builder.append(String.format("\"%s\": %f,\n", entry.getKey(),
+                builder.append(String.format("\"%s\": %.1f,\n", entry.getKey(),
                         entry.getValue()));
             else if (entry.getValue() instanceof Integer)
                 builder.append(String.format("\"%s\": %d,\n", entry.getKey(),
