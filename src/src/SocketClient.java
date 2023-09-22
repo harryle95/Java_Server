@@ -23,8 +23,6 @@ public abstract class SocketClient {
 
     private int port;
 
-    public SocketClient(String[] argv) {
-    }
 
     public String getHostname() {
         return hostname;
