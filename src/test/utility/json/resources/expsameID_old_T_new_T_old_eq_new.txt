@@ -1,0 +1,5 @@
+{
+"id": "A0",
+"press": 1023,
+"local_date_time_full": "20230101170000"
+}
