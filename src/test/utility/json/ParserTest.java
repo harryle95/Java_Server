@@ -4,7 +4,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,7 +33,7 @@ class ParserTest {
             "{\n\"id\": \"A0\",\n\"value\": \"${{value}}\"\n}",
     })
     void testParseSingleItem(String input) {
-        parser.parseString(input);
+        parser.parseMessage(input);
         assertEquals(input, parser.toString());
     }
 
@@ -45,7 +44,7 @@ class ParserTest {
             "{\n\"id\": \"A0\",\n\"id\": \"A1\",\n\"id\": \"A2\",\n\"lat\": -34.9\n}",
     })
     void testParseMultiple(String input) {
-        parser.parseString(input);
+        parser.parseMessage(input);
         assertEquals(input, parser.toString());
     }
 
@@ -57,18 +56,40 @@ class ParserTest {
 
     })
     void testParseInvalid(String input) {
-        parser.parseString(input);
+        parser.parseMessage(input);
         assertEquals(1, parser.size());
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"file1.txt", "file2.txt", "file3.txt", "file4.txt",
-            "file5.txt"})
+    @ValueSource(strings = {
+            "oneID.txt",
+            "twoID.txt",
+            "twoIDNotInOrder.txt",
+            "secondNoID.txt",
+            "firstMissingID.txt"
+    })
     void testParseFile(String fileName) throws IOException {
         Path filePath = workDir.resolve(fileName);
-        File targetFile = new File(String.valueOf(filePath));
-        parser.parseFile(targetFile);
+        parser.parseFile(filePath);
         Path expFilePath = workDir.resolve("exp" + fileName);
-        assertEquals(String.join("\n", Files.readAllLines(expFilePath)), parser.toString());
+        assertEquals(String.join("\n", Files.readAllLines(expFilePath)),
+                parser.toString());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "sameID_old_F_new_T.txt",
+            "sameID_old_T_new_F.txt",
+            "sameID_old_F_new_F.txt",
+            "sameID_old_T_new_T_old_gt_new.txt",
+            "sameID_old_T_new_T_old_lt_new.txt",
+            "sameID_old_T_new_T_old_eq_new.txt"
+    })
+    void testParseFileSameID(String fileName) throws IOException {
+        Path filePath = workDir.resolve(fileName);
+        parser.parseFile(filePath);
+        Path expFilePath = workDir.resolve("exp" + fileName);
+        assertEquals(String.join("\n", Files.readAllLines(expFilePath)),
+                parser.toString());
     }
 }
