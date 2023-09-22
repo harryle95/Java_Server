@@ -39,9 +39,12 @@ public class WeatherData {
         return (String) fields.get("id");
     }
 
+    public void clear(){
+        fields.clear();
+    }
 
     public String toString() {
-        StringBuilder builder = new StringBuilder("{\n");
+        StringBuilder builder = new StringBuilder();
         Iterator<Map.Entry<String, Object>> iterator = fields.entrySet().iterator();
 
         while (iterator.hasNext()) {
@@ -58,7 +61,6 @@ public class WeatherData {
             if (iterator.hasNext())
                 builder.append(",\n");
         }
-        builder.append("\n}");
         return builder.toString();
     }
 
