@@ -15,8 +15,12 @@ class GETClientTest {
     })
     void testCorrectFormatMessage(String input) {
         GETClient client = new GETClient(input.split(" "));
-        assertEquals("GET /data HTTP/1.1\r\nHost: localhost:8080\r\nAccept: " +
-                "application/json\r\n\r\n", client.formatMessage());
+        assertEquals("""
+                GET /data HTTP/1.1\r
+                Host: localhost:8080\r
+                Accept: application/json\r
+                \r
+                """, client.formatMessage());
     }
 
     @ParameterizedTest
