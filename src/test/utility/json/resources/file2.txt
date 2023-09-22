@@ -1,0 +1,8 @@
+id: A0
+lat: 10
+lon: 20.2
+wind_spd_kt: 0x00f
+id: A1
+lat: 10
+lon: 20.2
+wind_spd_kt: 0x00f
