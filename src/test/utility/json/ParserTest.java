@@ -34,7 +34,7 @@ class ParserTest {
             "{\n\"id\": \"A0\",\n\"value\": \"${{value}}\"\n}",
     })
     void testParseSingleItem(String input) {
-        parser.parseString(input);
+        parser.parseMessage(input);
         assertEquals(input, parser.toString());
     }
 
@@ -45,7 +45,7 @@ class ParserTest {
             "{\n\"id\": \"A0\",\n\"id\": \"A1\",\n\"id\": \"A2\",\n\"lat\": -34.9\n}",
     })
     void testParseMultiple(String input) {
-        parser.parseString(input);
+        parser.parseMessage(input);
         assertEquals(input, parser.toString());
     }
 
@@ -57,7 +57,7 @@ class ParserTest {
 
     })
     void testParseInvalid(String input) {
-        parser.parseString(input);
+        parser.parseMessage(input);
         assertEquals(1, parser.size());
     }
 
@@ -66,8 +66,7 @@ class ParserTest {
             "file5.txt"})
     void testParseFile(String fileName) throws IOException {
         Path filePath = workDir.resolve(fileName);
-        File targetFile = new File(String.valueOf(filePath));
-        parser.parseFile(targetFile);
+        parser.parseFile(filePath);
         Path expFilePath = workDir.resolve("exp" + fileName);
         assertEquals(String.join("\n", Files.readAllLines(expFilePath)), parser.toString());
     }

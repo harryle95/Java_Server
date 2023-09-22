@@ -23,7 +23,7 @@ class WeatherDataTest {
             "{\n\"id\": \"A0\",\n\"value\": \"${{value}}\"\n}",
     })
     void testParseSingleItem(String input) {
-        parser.parseString(input);
+        parser.parseMessage(input);
         WeatherData data = parser.get("A0");
         assertEquals(input.substring(2, input.length()-2), data.toString());
     }
