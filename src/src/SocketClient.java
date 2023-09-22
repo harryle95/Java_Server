@@ -54,4 +54,11 @@ public abstract class SocketClient {
         }
     }
 
+    public void sendMessage(String message) {
+        out.println(message);
+    }
+
+    public String readMessage() throws IOException {
+        return in.readLine();
+    }
 }
