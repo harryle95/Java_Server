@@ -6,6 +6,9 @@ TESTDIR  = src/test
 JUNITJAR = jar_files
 JARFILE = junit-platform-console-standalone-1.9.3.jar
 
+make_dirs:
+	mkdir -p $(OUTDIR) $(TESTOUTDIR)
+
 compile_utility:
 	find $(UTILDIR) -name "*.java" > sources.txt
 	javac -d $(OUTDIR) -cp $(CLASSDIR) @sources.txt

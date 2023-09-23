@@ -59,8 +59,8 @@ The following errors are custom errors and will be handled.
 - `MismatchedData`: when the result of the PUT request is different from its data. Unique to content server. Error is
   simply logged.
 - `BackupNotFound`: when the system cannot find the backup files. Simply creates a new one if the current node is the
-  master node,
-  or request a backup file from system node.
+  master node, or request a backup file from system node.
+- `DataNotFound`: when the data related to the station ID is not found on the server. 
 
 ### JSON Parsing:
 
@@ -122,5 +122,8 @@ local_date_time_full: 20230101153000
   
   <json string body>
   ```
-  
+
+### AggregationServer 
+
+
 
