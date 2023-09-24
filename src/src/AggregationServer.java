@@ -2,7 +2,6 @@ import utility.http.HTTPRequest;
 import utility.http.HTTPResponse;
 import utility.http.MessageExchanger;
 
-import java.beans.ExceptionListener;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -11,7 +10,6 @@ import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.Base64;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -20,7 +18,7 @@ public class AggregationServer {
     private final ExecutorService connRecvPool; // Threadpool to accept incoming requests
 
     public AggregationServer() {
-        connRecvPool = Executors.newFixedThreadPool(10);
+        connRecvPool = Executors.newCachedThreadPool();
     }
 
     public void run(int port) throws IOException {
@@ -71,8 +69,8 @@ public class AggregationServer {
 
 class RequestHandler implements Runnable {
     private final Socket clientSocket;
-    private PrintWriter out;
-    private BufferedReader in;
+    private final PrintWriter out;
+    private final BufferedReader in;
 
     // TODO: shared Lamport-Clock object to update timing
     public RequestHandler(Socket socket) throws IOException {
