@@ -37,6 +37,8 @@ public abstract class SocketClient {
             clientSocket = new Socket(hostname, port);
             out = new PrintWriter(clientSocket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            System.out.println("My connection info: " + clientSocket.getLocalSocketAddress());
+            System.out.println("Connecting to: " + clientSocket.getRemoteSocketAddress());
         } catch (UnknownHostException e) {
             throw new RuntimeException("No host at " + hostname + ":" + port);
         } catch (IOException e) {
@@ -44,19 +46,20 @@ public abstract class SocketClient {
         }
     }
 
-    public void close() {
-        try {
-            clientSocket.close();
-        } catch (IOException e) {
-            System.out.println("Socket already closed");
-        }
+    public String receive() throws IOException {
+        return in.readLine();
     }
 
-    public void sendMessage(String message) {
+    public void send(String message) {
         out.println(message);
     }
 
-    public String readMessage() throws IOException {
-        return in.readLine();
+    public void close() {
+        try {
+            clientSocket.close();
+            System.out.println("Closing connection");
+        } catch (IOException e) {
+            System.out.println("Socket already closed");
+        }
     }
 }
