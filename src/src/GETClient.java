@@ -46,11 +46,15 @@ public class GETClient extends SocketClient {
         try {
             connect();
             HTTPRequest request = formatMessage();
-            System.out.println(request.build());
-            out.println(request.build());
-            String response;
-            while ((response = in.readLine()) != null) {
-                System.out.println(response);
+            String message = request.build();
+            System.out.println(message);
+            send(MessageExchanger.encode(message));
+            while (true) {
+                String encodedResponse = receive();
+                if (encodedResponse != null) {
+                    System.out.println(MessageExchanger.decode(encodedResponse));
+                    break;
+                }
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -61,14 +65,6 @@ public class GETClient extends SocketClient {
 
     public static void main(String[] argv) throws IOException {
         GETClient client = new GETClient(argv);
-        client.connect();
-        HTTPRequest request = client.formatMessage();
-        System.out.println(request.build());
-        client.out.println(MessageExchanger.encode(request.build()));
-        while (true) {
-            String output = client.in.readLine();
-            System.out.println(MessageExchanger.decode(output));
-            break;
-        }
+        client.run();
     }
 }

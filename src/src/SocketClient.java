@@ -46,9 +46,18 @@ public abstract class SocketClient {
         }
     }
 
+    public String receive() throws IOException {
+        return in.readLine();
+    }
+
+    public void send(String message) {
+        out.println(message);
+    }
+
     public void close() {
         try {
             clientSocket.close();
+            System.out.println("Closing connection");
         } catch (IOException e) {
             System.out.println("Socket already closed");
         }
