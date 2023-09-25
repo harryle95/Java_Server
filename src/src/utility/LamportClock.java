@@ -7,12 +7,16 @@ public class LamportClock {
         timestamp = 0;
     }
 
-    public int getTimestamp() {
+    public int printTimestamp() {
+        return timestamp;
+    }
+
+    public synchronized int getTimestamp() {
         timestamp += 1;
         return timestamp;
     }
 
-    public void setTimestamp(int timestamp) {
+    public synchronized void setTimestamp(int timestamp) {
         this.timestamp = Math.max(timestamp, this.timestamp) + 1;
     }
 }
