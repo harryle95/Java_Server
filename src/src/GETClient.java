@@ -1,11 +1,9 @@
 import utility.domain.GETClientParser;
 import utility.domain.GETServerInformation;
 import utility.http.HTTPRequest;
-import utility.http.MessageExchanger;
+import utility.MessageExchanger;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 
 public class GETClient extends SocketClient {
     private String stationID;

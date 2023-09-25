@@ -1,6 +1,6 @@
 import utility.http.HTTPRequest;
 import utility.http.HTTPResponse;
-import utility.http.MessageExchanger;
+import utility.MessageExchanger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
