@@ -1,3 +1,8 @@
+import utility.LamportClock;
+import utility.MessageExchanger;
+import utility.http.HTTPRequest;
+import utility.http.HTTPResponse;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -5,10 +10,12 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-public abstract class SocketClient {
-    Socket clientSocket;
-    PrintWriter out;
-    BufferedReader in;
+public class SocketClient extends SocketCommunicator {
+
+    public SocketClient() {
+        super();
+        this.type = "client";
+    }
 
     public void setHostname(String hostname) {
         this.hostname = hostname;
@@ -43,23 +50,6 @@ public abstract class SocketClient {
             throw new RuntimeException("No host at " + hostname + ":" + port);
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    public String receive() throws IOException {
-        return in.readLine();
-    }
-
-    public void send(String message) {
-        out.println(message);
-    }
-
-    public void close() {
-        try {
-            clientSocket.close();
-            System.out.println("Closing connection");
-        } catch (IOException e) {
-            System.out.println("Socket already closed");
         }
     }
 }
