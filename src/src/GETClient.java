@@ -9,6 +9,7 @@ public class GETClient extends SocketClient {
     private String stationID;
 
     public GETClient(String[] argv) {
+        super();
         GETClientParser parser = new GETClientParser();
         GETServerInformation info = parser.parse(argv);
         setHostname(info.hostname);
@@ -44,15 +45,12 @@ public class GETClient extends SocketClient {
         try {
             connect();
             HTTPRequest request = formatMessage();
-            String message = request.build();
-            System.out.println(message);
-            send(MessageExchanger.encode(message));
+            send(request);
             while (true) {
-                String encodedResponse = receive();
-                if (encodedResponse != null) {
-                    System.out.println(MessageExchanger.decode(encodedResponse));
-                    break;
-                }
+                String response = receive();
+                if (response != null)
+                    System.out.println(response);
+                break;
             }
         } catch (IOException e) {
             throw new RuntimeException(e);

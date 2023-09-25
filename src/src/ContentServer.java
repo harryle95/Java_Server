@@ -11,6 +11,7 @@ public class ContentServer extends SocketClient {
 
 
     public ContentServer(String[] argv) {
+        super();
         ContentServerParser parser = new ContentServerParser();
         ContentServerInformation info = parser.parse(argv);
         setHostname(info.hostname);
