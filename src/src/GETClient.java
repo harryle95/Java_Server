@@ -58,7 +58,7 @@ public class GETClient extends SocketClient {
         }
     }
 
-    public static void main(String[] argv) throws IOException {
+    public static void main(String[] argv) {
         GETClient client = new GETClient(argv);
         client.run();
     }
