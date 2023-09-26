@@ -1,4 +1,4 @@
-OUTDIR = out/production/Java_Server
+OUTDIR = out/production/src
 TESTOUTDIR = out/test
 CLASSDIR = src/src
 UTILDIR = src/src/utility
