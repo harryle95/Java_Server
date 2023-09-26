@@ -1,9 +1,10 @@
 package utility.http;
 
+import java.net.http.HttpResponse;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class HTTPResponse {
+public class HTTPResponse implements HTTPMessage {
     public String version;
     public String statusCode;
     public String reasonPhrase;

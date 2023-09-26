@@ -1,4 +1,4 @@
-package utility.http;
+package utility;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;

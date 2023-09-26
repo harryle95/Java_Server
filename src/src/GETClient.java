@@ -1,16 +1,14 @@
 import utility.domain.GETClientParser;
 import utility.domain.GETServerInformation;
 import utility.http.HTTPRequest;
-import utility.http.MessageExchanger;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 
 public class GETClient extends SocketClient {
     private String stationID;
 
     public GETClient(String[] argv) {
+        super();
         GETClientParser parser = new GETClientParser();
         GETServerInformation info = parser.parse(argv);
         setHostname(info.hostname);
@@ -46,15 +44,12 @@ public class GETClient extends SocketClient {
         try {
             connect();
             HTTPRequest request = formatMessage();
-            String message = request.build();
-            System.out.println(message);
-            send(MessageExchanger.encode(message));
+            send(request);
             while (true) {
-                String encodedResponse = receive();
-                if (encodedResponse != null) {
-                    System.out.println(MessageExchanger.decode(encodedResponse));
-                    break;
-                }
+                String response = receive();
+                if (response != null)
+                    System.out.println(response);
+                break;
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -63,7 +58,7 @@ public class GETClient extends SocketClient {
         }
     }
 
-    public static void main(String[] argv) throws IOException {
+    public static void main(String[] argv) {
         GETClient client = new GETClient(argv);
         client.run();
     }

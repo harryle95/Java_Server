@@ -3,7 +3,7 @@ package utility.http;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class HTTPRequest {
+public class HTTPRequest implements HTTPMessage {
     public String method;
     public String uri;
     public String version;

@@ -5,10 +5,12 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-public abstract class SocketClient {
-    Socket clientSocket;
-    PrintWriter out;
-    BufferedReader in;
+public class SocketClient extends SocketCommunicator {
+
+    public SocketClient() {
+        super();
+        this.type = "client";
+    }
 
     public void setHostname(String hostname) {
         this.hostname = hostname;
@@ -20,6 +22,9 @@ public abstract class SocketClient {
 
     private String hostname;
 
+    public int printTimestamp() {
+        return clock.printTimestamp();
+    }
 
     private int port;
 
@@ -46,20 +51,5 @@ public abstract class SocketClient {
         }
     }
 
-    public String receive() throws IOException {
-        return in.readLine();
-    }
 
-    public void send(String message) {
-        out.println(message);
-    }
-
-    public void close() {
-        try {
-            clientSocket.close();
-            System.out.println("Closing connection");
-        } catch (IOException e) {
-            System.out.println("Socket already closed");
-        }
-    }
 }
