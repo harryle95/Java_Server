@@ -9,19 +9,21 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class LamportClockTest {
     LamportClock clock;
+
     @BeforeEach
-    void SetUp(){
+    void SetUp() {
         clock = new LamportClock();
     }
 
     @ParameterizedTest
-    @ValueSource(ints={5,6,7,8,9})
+    @ValueSource(ints = {5, 6, 7, 8, 9})
     void getTimestamp(int value) {
         // Simulate sending
         clock.getTimestamp();
         clock.setTimestamp(value);
         int sendTS = clock.getTimestamp();
-        assertEquals(value+2,sendTS);
+        assertEquals(value + 2, sendTS);
+        assertEquals(value + 2, clock.printTimestamp());
     }
 
 }
