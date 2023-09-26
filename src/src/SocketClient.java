@@ -1,8 +1,3 @@
-import utility.LamportClock;
-import utility.MessageExchanger;
-import utility.http.HTTPRequest;
-import utility.http.HTTPResponse;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -27,6 +22,9 @@ public class SocketClient extends SocketCommunicator {
 
     private String hostname;
 
+    public int printTimestamp() {
+        return clock.printTimestamp();
+    }
 
     private int port;
 
@@ -52,4 +50,6 @@ public class SocketClient extends SocketCommunicator {
             throw new RuntimeException(e);
         }
     }
+
+
 }

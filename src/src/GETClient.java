@@ -1,7 +1,6 @@
 import utility.domain.GETClientParser;
 import utility.domain.GETServerInformation;
 import utility.http.HTTPRequest;
-import utility.MessageExchanger;
 
 import java.io.IOException;
 
