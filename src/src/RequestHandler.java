@@ -11,12 +11,14 @@ public class RequestHandler implements Callable<HttpResponse> {
     private final HTTPRequest request;
     private final int priority;
 
+    private final String remoteIP;
     private final ConcurrentMap<String, String> database;
 
     private final ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<String, String>>> archive;
 
     public RequestHandler(
             HTTPRequest request,
+            String remoteIP,
             LamportClock clock,
             ConcurrentMap<String, String> database,
             ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<String, String>>> archive
@@ -25,6 +27,7 @@ public class RequestHandler implements Callable<HttpResponse> {
         priority = clock.printTimestamp();
         this.database = database;
         this.archive = archive;
+        this.remoteIP = remoteIP;
     }
 
     private HTTPResponse handleGET(HTTPRequest request) {
@@ -77,5 +80,9 @@ public class RequestHandler implements Callable<HttpResponse> {
     @Override
     public HttpResponse call() throws Exception {
         return null;
+    }
+
+    public int getPriority() {
+        return priority;
     }
 }
