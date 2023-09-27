@@ -1,29 +1,40 @@
 import utility.LamportClock;
 import utility.http.HTTPRequest;
 import utility.http.HTTPResponse;
-import utility.MessageExchanger;
 
 import java.io.IOException;
-import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.*;
 
 public class AggregationServer {
-    private ServerSocket serverSocket;
-    private final ExecutorService connRecvPool; // Threadpool to accept incoming requests
+    private final Map<String, String> database;
+    private final Map<String, Map<String, Map<String, String>>> archive;
 
+
+    private final ExecutorService connectionPool; // Threadpool to accept incoming requests
+
+    private final ThreadPoolExecutor requestHandlerPool;
+
+    private final ScheduledExecutorService backupPool;
+
+    private final int POOLSIZE = 10;
+
+
+    private ServerSocket serverSocket;
     private final LamportClock clock;
 
-    public int printTimestamp() {
-        return clock.printTimestamp();
-    }
 
     public AggregationServer(String[] argv) throws IOException {
         int port = getPort(argv);
-        connRecvPool = Executors.newCachedThreadPool();
+        database = new HashMap<>();
+        archive = new HashMap<>();
+        connectionPool = Executors.newCachedThreadPool();
+        backupPool = Executors.newScheduledThreadPool(POOLSIZE);
+
+
         clock = new LamportClock();
         run(port);
     }
@@ -37,8 +48,9 @@ public class AggregationServer {
     public void start() throws IOException {
         while (true) {
             Socket clientSocket = serverSocket.accept();
-            RequestHandler handler = new RequestHandler(clientSocket, clock);
-            connRecvPool.execute(handler);
+
+            // Connection Pool listen for incoming requests
+            connectionPool.execute(new ConnectionHandler(clientSocket, clock));
         }
     }
 
@@ -57,6 +69,7 @@ public class AggregationServer {
     public static void main(String[] args) throws IOException {
         AggregationServer server = new AggregationServer(args);
         server.start();
+        server.close();
     }
 
     public void close() throws IOException {
@@ -65,72 +78,3 @@ public class AggregationServer {
 }
 
 
-class RequestHandler extends SocketCommunicator implements Runnable {
-
-    public RequestHandler(Socket socket, LamportClock clock) throws IOException {
-        super(socket, clock, "server");
-    }
-
-    private HTTPResponse handleGET(HTTPRequest request) {
-        String body;
-        if (request.uri.equals("/")) {
-            body = "";
-        } else {
-            // TODO: check if StationID exists in Map
-            body = request.uri.substring(1);
-        }
-        return new HTTPResponse("1.1")
-                .setStatusCode("200")
-                .setReasonPhrase("OK")
-                .setHeader("Content-Type", "application/json")
-                .setBody(body);
-    }
-
-    private HTTPResponse handlePUT(HTTPRequest request) {
-        String body = request.body;
-        // TODO: perform correct PUT
-        return new HTTPResponse("1.1")
-                .setStatusCode("200")
-                .setReasonPhrase("OK")
-                .setHeader("Content-Type", "application/json")
-                .setBody(body);
-    }
-
-
-    private HTTPResponse getResponse(HTTPRequest request) {
-        HTTPResponse response;
-        if (request.method.equals("GET"))
-            response = handleGET(request);
-        else if (request.method.equals("PUT"))
-            response = handlePUT(request);
-        else
-            response = new HTTPResponse("1.1").setStatusCode("400").setReasonPhrase("Bad Request");
-        return response;
-    }
-
-    @Override
-    public void run() {
-        try {
-            String message;
-            while (true) {
-                System.out.println("Before receive: " + clock.printTimestamp());
-                message = receive();
-                if (message == null)
-                    break;
-//                System.out.println(message);
-                System.out.println("After receive: " + clock.printTimestamp());
-                HTTPRequest request = HTTPRequest.fromMessage(message);
-                // TODO: submit request to a task queue and get the Future as a CompletionService
-
-                send(getResponse(request));
-                System.out.println("After send: " + clock.printTimestamp());
-
-            }
-            System.out.println("Socket is closed");
-            clientSocket.close();
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-}
