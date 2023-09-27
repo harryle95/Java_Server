@@ -1,3 +1,4 @@
+import utility.FileMetadata;
 import utility.LamportClock;
 import utility.http.HTTPRequest;
 import utility.http.HTTPResponse;
@@ -16,7 +17,6 @@ public class RequestHandler implements Callable<HTTPResponse> {
     private final int priority;
     private final LinkedBlockingQueue<FileMetadata> updateQueue;
 
-    private final Parser parser;
     private final String remoteIP;
     private final ConcurrentMap<String, String> database;
 
@@ -36,12 +36,11 @@ public class RequestHandler implements Callable<HTTPResponse> {
         this.database = database;
         this.archive = archive;
         this.remoteIP = remoteIP;
-        parser = new Parser();
     }
 
-    private HTTPResponse handleGET() {
+    public HTTPResponse handleGET() {
         // Empty GET request
-        String stationID = request.getStationID();
+        String stationID = request.getURIEndPoint();
         if (stationID == null)
             return new HTTPResponse("1.1")
                     .setStatusCode("204")
@@ -63,58 +62,75 @@ public class RequestHandler implements Callable<HTTPResponse> {
                 .setBody("");
     }
 
-    private HTTPResponse handlePUT() throws InterruptedException {
-        HTTPResponse response;
-        String fileName = request.uri.substring(1);
-        String body = request.body;
-        parser.parseMessage(body);
-        Map<String, WeatherData> container = parser.getContainer();
-        // Response for newly connected host
-        if (!archive.containsKey(remoteIP))
-            response = new HTTPResponse("1.1")
-                    .setStatusCode("201")
-                    .setReasonPhrase("Created")
-                    .setHeader("Content-Type", "application/json")
-                    .setHeader("Content-Length", request.header.get("Content-Length"))
-                    .setBody(body);
-        else
-            response = new HTTPResponse("1.1")
-                    .setStatusCode("200")
-                    .setReasonPhrase("OK")
-                    .setHeader("Content-Type", "application/json")
-                    .setHeader("Content-Length", request.header.get("Content-Length"))
-                    .setBody(body);
-
-        // TODO: this doesn't work just yet. Think of a better solution
-        // Remove stale update from archive
-        updateQueue.put(new FileMetadata(remoteIP, fileName));
-        while (updateQueue.size() > 20){
-            // Remove stale updates from the beginning of the queue
-            FileMetadata popData = updateQueue.poll();
-            if (archive.containsKey(popData.getRemoteIP())){
-                archive.get(popData.getRemoteIP()).remove(popData.getFileName());
-            }
-        }
+    public HTTPResponse handlePUT() throws InterruptedException {
+        // Remove updates older than 20 most recent
+        removeStalePUTDataFromArchive();
 
         // Update archive
-        ConcurrentMap<String, ConcurrentMap<String, String>>
-                remoteEntry = archive.getOrDefault(remoteIP, new ConcurrentHashMap<>());
-        ConcurrentMap<String, String> entry = new ConcurrentHashMap<>();
-        entry.put("Value", body);
-        entry.put("Fresh", "true");
-        remoteEntry.put(fileName, entry);
-        archive.put(remoteIP, remoteEntry);
+        addPUTDataToArchive();
 
         // Update database
+        updateStationDatabase();
+
+        // Return response
+        return generateHTTPResponseToPUT();
+    }
+
+    private void updateStationDatabase() {
+        Parser parser = new Parser();
+        parser.parseMessage(request.body);
+        Map<String, WeatherData> container = parser.getContainer();
         for (Map.Entry<String, WeatherData> weatherEntry : container.entrySet()) {
             String weatherData = weatherEntry.getValue().toString();
             database.put(weatherEntry.getKey(), weatherData);
         }
+    }
 
+    private HTTPResponse generateHTTPResponseToPUT() {
+        // Response for newly connected host
+        if (!archive.containsKey(remoteIP))
+            return new HTTPResponse("1.1")
+                    .setStatusCode("201")
+                    .setReasonPhrase("Created")
+                    .setHeader("Content-Type", "application/json")
+                    .setHeader("Content-Length", request.header.get("Content-Length"))
+                    .setBody(request.body);
+        return new HTTPResponse("1.1")
+                .setStatusCode("200")
+                .setReasonPhrase("OK")
+                .setHeader("Content-Type", "application/json")
+                .setHeader("Content-Length", request.header.get("Content-Length"))
+                .setBody(request.body);
+    }
 
+    private void removeStalePUTDataFromArchive() throws InterruptedException {
+        String fileName = request.getURIEndPoint();
+        // Add new metadata to updateQueue
+        updateQueue.put(new FileMetadata(remoteIP, fileName, String.valueOf(priority)));
+        while (updateQueue.size() > 20) {
+            // Remove stale updates from the beginning of the queue
+            FileMetadata popData = updateQueue.poll();
+            String popIP = popData.getRemoteIP();
+            String popFileName = popData.getFileName();
+            String popTS = popData.getTimestamp();
+            if (archive.containsKey(popIP) && archive.get(popIP).containsKey(popFileName)) {
+                String archiveTS = archive.get(popIP).get(popFileName).get("Timestamp");
+                // If old data hasn't been updated since -> Remove
+                if (popTS.equals(archiveTS)) {
+                    archive.get(popIP).remove(popFileName);
+                }
+            }
+        }
+    }
 
-        // Return response
-        return response;
+    private void addPUTDataToArchive() {
+        ConcurrentMap<String, ConcurrentMap<String, String>>
+                remoteEntry = archive.getOrDefault(remoteIP, new ConcurrentHashMap<>());
+        ConcurrentMap<String, String> entry = new ConcurrentHashMap<>();
+        entry.put("Value", request.body);
+        entry.put("Timestamp", String.valueOf(priority));
+        remoteEntry.put(request.getURIEndPoint(), entry);
+        archive.put(remoteIP, remoteEntry);
     }
 
 
