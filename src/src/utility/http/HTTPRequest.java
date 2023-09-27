@@ -87,7 +87,7 @@ public class HTTPRequest implements HTTPMessage {
         return new HTTPRequest(method, uri, version, header, body);
     }
 
-    public String getStationID() {
+    public String getURIEndPoint() {
         if (uri.length() == 1)
             return null;
         return uri.substring(1);
