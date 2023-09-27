@@ -102,14 +102,16 @@ public class RequestHandler implements Callable<HTTPResponse> {
 
 
     @Override
-    public HTTPResponse call() throws Exception {
+    public HTTPResponse call(){
         HTTPResponse response;
         if (request.method.equals("GET"))
             response = handleGET();
         else if (request.method.equals("PUT"))
             response = handlePUT();
         else
-            response = new HTTPResponse("1.1").setStatusCode("400").setReasonPhrase("Bad Request");
+            response = new HTTPResponse("1.1")
+                    .setStatusCode("400")
+                    .setReasonPhrase("Bad Request");
         return response;
     }
 
