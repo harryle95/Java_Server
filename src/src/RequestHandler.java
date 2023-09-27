@@ -4,13 +4,13 @@ import utility.http.HTTPResponse;
 import utility.json.Parser;
 import utility.json.WeatherData;
 
-import java.net.http.HttpResponse;
+
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class RequestHandler implements Callable<HttpResponse> {
+public class RequestHandler implements Callable<HTTPResponse> {
     private final HTTPRequest request;
     private final int priority;
 
@@ -113,7 +113,7 @@ public class RequestHandler implements Callable<HttpResponse> {
     }
 
     @Override
-    public HttpResponse call() throws Exception {
+    public HTTPResponse call() throws Exception {
         return null;
     }
 
