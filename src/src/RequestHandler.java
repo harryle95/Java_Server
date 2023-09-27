@@ -119,7 +119,7 @@ public class RequestHandler implements Callable<HTTPResponse> {
 
 
     @Override
-    public HTTPResponse call() {
+    public HTTPResponse call() throws InterruptedException {
         HTTPResponse response;
         if (request.method.equals("GET"))
             response = handleGET();
