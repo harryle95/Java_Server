@@ -1,3 +1,4 @@
+import utility.FileMetadata;
 import utility.LamportClock;
 import utility.http.HTTPRequest;
 import utility.http.HTTPResponse;
