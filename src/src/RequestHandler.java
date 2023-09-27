@@ -1,16 +1,20 @@
 import utility.LamportClock;
 import utility.http.HTTPRequest;
 import utility.http.HTTPResponse;
+import utility.json.Parser;
+import utility.json.WeatherData;
 
 import java.net.http.HttpResponse;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class RequestHandler implements Callable<HttpResponse> {
     private final HTTPRequest request;
     private final int priority;
 
+    private final Parser parser;
     private final String remoteIP;
     private final ConcurrentMap<String, String> database;
 
@@ -28,6 +32,7 @@ public class RequestHandler implements Callable<HttpResponse> {
         this.database = database;
         this.archive = archive;
         this.remoteIP = remoteIP;
+        parser = new Parser();
     }
 
     private HTTPResponse handleGET(HTTPRequest request) {
@@ -56,13 +61,43 @@ public class RequestHandler implements Callable<HttpResponse> {
     }
 
     private HTTPResponse handlePUT(HTTPRequest request) {
+        HTTPResponse response;
+        String fileName = request.uri.substring(1);
         String body = request.body;
-        // TODO: perform correct PUT
-        return new HTTPResponse("1.1")
-                .setStatusCode("200")
-                .setReasonPhrase("OK")
-                .setHeader("Content-Type", "application/json")
-                .setBody(body);
+        parser.parseMessage(body);
+        Map<String, WeatherData> container = parser.getContainer();
+        // Response for newly connected host
+        if (!archive.containsKey(remoteIP))
+            response = new HTTPResponse("1.1")
+                    .setStatusCode("201")
+                    .setReasonPhrase("Created")
+                    .setHeader("Content-Type", "application/json")
+                    .setHeader("Content-Length", request.header.get("Content-Length"))
+                    .setBody(body);
+        else
+            response = new HTTPResponse("1.1")
+                    .setStatusCode("200")
+                    .setReasonPhrase("OK")
+                    .setHeader("Content-Type", "application/json")
+                    .setHeader("Content-Length", request.header.get("Content-Length"))
+                    .setBody(body);
+        // Update archive
+        ConcurrentMap<String, ConcurrentMap<String, String>>
+                remoteEntry = archive.getOrDefault(remoteIP, new ConcurrentHashMap<>());
+        ConcurrentMap<String, String> entry = new ConcurrentHashMap<>();
+        entry.put("Value", body);
+        entry.put("Fresh", "true");
+        remoteEntry.put(fileName, entry);
+        archive.put(remoteIP, remoteEntry);
+
+        // Update database
+        for (Map.Entry<String, WeatherData> weatherEntry : container.entrySet()) {
+            String weatherData = weatherEntry.getValue().toString();
+            database.put(weatherEntry.getKey(), weatherData);
+        }
+
+        // Return response
+        return response;
     }
 
 
