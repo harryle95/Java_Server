@@ -9,14 +9,14 @@ public class AggregationServer {
     private final ConcurrentMap<String, String> database;
     private final ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<String, String>>> archive;
 
-//    private final LinkedBlockingQueue<>
+    private final LinkedBlockingQueue<FileMetadata> updateQueue; // Queue referencing archive data based on order of update
 
     private final ExecutorService connectionHandlerPool; // Thread pool to accept incoming requests
 
     private final ExecutorService requestHandlerPool; // Thread pool to handle request
 
 
-    private final ScheduledExecutorService backupPool;
+    private final ScheduledExecutorService schedulePool; // Thread pool to execute period background tasks
 
     private final int POOLSIZE = 10;
 
@@ -30,7 +30,8 @@ public class AggregationServer {
         database = new ConcurrentHashMap<>();
         archive = new ConcurrentHashMap<>();
         connectionHandlerPool = Executors.newCachedThreadPool();
-        backupPool = Executors.newScheduledThreadPool(POOLSIZE);
+        schedulePool = Executors.newScheduledThreadPool(POOLSIZE);
+        updateQueue = new LinkedBlockingQueue<>();
         requestHandlerPool = new ThreadPoolExecutor(
                 1,
                 1,
@@ -60,7 +61,7 @@ public class AggregationServer {
 
             // Connection Pool listen for incoming requests
             connectionHandlerPool.execute(new ConnectionHandler(
-                    clientSocket, clock, database, archive, requestHandlerPool));
+                    clientSocket, clock, database, archive, requestHandlerPool, updateQueue));
         }
     }
 

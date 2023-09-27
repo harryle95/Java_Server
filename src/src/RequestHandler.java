@@ -9,10 +9,12 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class RequestHandler implements Callable<HTTPResponse> {
     private final HTTPRequest request;
     private final int priority;
+    private final LinkedBlockingQueue<FileMetadata> updateQueue;
 
     private final Parser parser;
     private final String remoteIP;
@@ -24,11 +26,13 @@ public class RequestHandler implements Callable<HTTPResponse> {
             HTTPRequest request,
             String remoteIP,
             LamportClock clock,
+            LinkedBlockingQueue<FileMetadata> updateQueue,
             ConcurrentMap<String, String> database,
             ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<String, String>>> archive
     ) {
         this.request = request;
         priority = clock.printTimestamp();
+        this.updateQueue = updateQueue;
         this.database = database;
         this.archive = archive;
         this.remoteIP = remoteIP;
@@ -59,7 +63,7 @@ public class RequestHandler implements Callable<HTTPResponse> {
                 .setBody("");
     }
 
-    private HTTPResponse handlePUT() {
+    private HTTPResponse handlePUT() throws InterruptedException {
         HTTPResponse response;
         String fileName = request.uri.substring(1);
         String body = request.body;
@@ -80,6 +84,18 @@ public class RequestHandler implements Callable<HTTPResponse> {
                     .setHeader("Content-Type", "application/json")
                     .setHeader("Content-Length", request.header.get("Content-Length"))
                     .setBody(body);
+
+        // TODO: this doesn't work just yet. Think of a better solution
+        // Remove stale update from archive
+        updateQueue.put(new FileMetadata(remoteIP, fileName));
+        while (updateQueue.size() > 20){
+            // Remove stale updates from the beginning of the queue
+            FileMetadata popData = updateQueue.poll();
+            if (archive.containsKey(popData.getRemoteIP())){
+                archive.get(popData.getRemoteIP()).remove(popData.getFileName());
+            }
+        }
+
         // Update archive
         ConcurrentMap<String, ConcurrentMap<String, String>>
                 remoteEntry = archive.getOrDefault(remoteIP, new ConcurrentHashMap<>());
@@ -94,6 +110,8 @@ public class RequestHandler implements Callable<HTTPResponse> {
             String weatherData = weatherEntry.getValue().toString();
             database.put(weatherEntry.getKey(), weatherData);
         }
+
+
 
         // Return response
         return response;
@@ -118,3 +136,4 @@ public class RequestHandler implements Callable<HTTPResponse> {
         return priority;
     }
 }
+
