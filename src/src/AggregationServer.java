@@ -1,6 +1,4 @@
 import utility.LamportClock;
-import utility.http.HTTPRequest;
-import utility.http.HTTPResponse;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -10,13 +8,13 @@ import java.util.Map;
 import java.util.concurrent.*;
 
 public class AggregationServer {
-    private final Map<String, String> database;
-    private final Map<String, Map<String, Map<String, String>>> archive;
+    private final ConcurrentMap<String, String> database;
+    private final ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<String, String>>> archive;
 
 
     private final ExecutorService connectionPool; // Threadpool to accept incoming requests
 
-    private final ThreadPoolExecutor requestHandlerPool;
+    private final ExecutorService requestHandlerPool;
 
     private final ScheduledExecutorService backupPool;
 
@@ -29,11 +27,22 @@ public class AggregationServer {
 
     public AggregationServer(String[] argv) throws IOException {
         int port = getPort(argv);
-        database = new HashMap<>();
-        archive = new HashMap<>();
+        database = new ConcurrentHashMap<>();
+        archive = new ConcurrentHashMap<>();
         connectionPool = Executors.newCachedThreadPool();
         backupPool = Executors.newScheduledThreadPool(POOLSIZE);
-
+        requestHandlerPool = new ThreadPoolExecutor(
+                1,
+                1,
+                0,
+                TimeUnit.SECONDS,
+                new PriorityBlockingQueue<Runnable>(10, new PriorityRunnableFutureComparator())
+        ) {
+            protected <T> RunnableFuture<T> newTaskFor(Callable<T> callable) {
+                RunnableFuture<T> newTaskFor = super.newTaskFor(callable);
+                return new PriorityRunnableFuture<>(newTaskFor, ((RequestHandler) callable).getPriority());
+            }
+        };
 
         clock = new LamportClock();
         run(port);
@@ -50,7 +59,8 @@ public class AggregationServer {
             Socket clientSocket = serverSocket.accept();
 
             // Connection Pool listen for incoming requests
-            connectionPool.execute(new ConnectionHandler(clientSocket, clock));
+            connectionPool.execute(new ConnectionHandler(
+                    clientSocket, clock, database, archive, requestHandlerPool));
         }
     }
 
