@@ -3,8 +3,6 @@ import utility.LamportClock;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.*;
 
 public class AggregationServer {
@@ -36,7 +34,7 @@ public class AggregationServer {
                 1,
                 0,
                 TimeUnit.SECONDS,
-                new PriorityBlockingQueue<Runnable>(10, new PriorityRunnableFutureComparator())
+                new PriorityBlockingQueue<>(10, new PriorityRunnableFutureComparator())
         ) {
             protected <T> RunnableFuture<T> newTaskFor(Callable<T> callable) {
                 RunnableFuture<T> newTaskFor = super.newTaskFor(callable);
