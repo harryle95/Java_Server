@@ -37,14 +37,13 @@ public class RequestHandler implements Callable<HTTPResponse> {
 
     private HTTPResponse handleGET() {
         // Empty GET request
-        if (request.uri.equals("/"))
+        String stationID = request.getStationID();
+        if (stationID == null)
             return new HTTPResponse("1.1")
                     .setStatusCode("204")
                     .setReasonPhrase("No Content")
                     .setHeader("Content-Type", "application/json")
                     .setBody("");
-        // Station ID provided
-        String stationID = request.uri.substring(1);
         // Station ID data is available
         if (database.containsKey(stationID))
             return new HTTPResponse("1.1")
@@ -102,7 +101,7 @@ public class RequestHandler implements Callable<HTTPResponse> {
 
 
     @Override
-    public HTTPResponse call(){
+    public HTTPResponse call() {
         HTTPResponse response;
         if (request.method.equals("GET"))
             response = handleGET();
