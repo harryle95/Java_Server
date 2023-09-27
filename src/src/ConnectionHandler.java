@@ -14,16 +14,19 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
 
     private final ExecutorService requestHandlerPool;
 
+    private final LinkedBlockingQueue<FileMetadata> updateQueue;
+
     public ConnectionHandler(
             Socket socket,
             LamportClock clock,
             ConcurrentMap<String, String> database,
             ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<String, String>>> archive,
-            ExecutorService requestHandlerPool) throws IOException {
+            ExecutorService requestHandlerPool, LinkedBlockingQueue<FileMetadata> updateQueue) throws IOException {
         super(socket, clock, "server");
         this.database = database;
         this.archive = archive;
         this.requestHandlerPool = requestHandlerPool;
+        this.updateQueue = updateQueue;
     }
 
 
@@ -41,6 +44,7 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
                         request,
                         clientSocket.getRemoteSocketAddress().toString(),
                         clock,
+                        updateQueue,
                         database,
                         archive
                 );
