@@ -35,7 +35,7 @@ public class RequestHandler implements Callable<HTTPResponse> {
         parser = new Parser();
     }
 
-    private HTTPResponse handleGET(HTTPRequest request) {
+    private HTTPResponse handleGET() {
         // Empty GET request
         if (request.uri.equals("/"))
             return new HTTPResponse("1.1")
@@ -60,7 +60,7 @@ public class RequestHandler implements Callable<HTTPResponse> {
                 .setBody("");
     }
 
-    private HTTPResponse handlePUT(HTTPRequest request) {
+    private HTTPResponse handlePUT() {
         HTTPResponse response;
         String fileName = request.uri.substring(1);
         String body = request.body;
@@ -101,20 +101,16 @@ public class RequestHandler implements Callable<HTTPResponse> {
     }
 
 
-    private HTTPResponse getResponse(HTTPRequest request) {
+    @Override
+    public HTTPResponse call() throws Exception {
         HTTPResponse response;
         if (request.method.equals("GET"))
-            response = handleGET(request);
+            response = handleGET();
         else if (request.method.equals("PUT"))
-            response = handlePUT(request);
+            response = handlePUT();
         else
             response = new HTTPResponse("1.1").setStatusCode("400").setReasonPhrase("Bad Request");
         return response;
-    }
-
-    @Override
-    public HTTPResponse call() throws Exception {
-        return null;
     }
 
     public int getPriority() {
