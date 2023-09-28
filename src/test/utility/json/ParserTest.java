@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ParserTest {
     Parser parser;
@@ -91,5 +92,18 @@ class ParserTest {
         Path expFilePath = workDir.resolve("exp" + fileName);
         assertEquals(String.join("\n", Files.readAllLines(expFilePath)),
                 parser.toString());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "{\n\"id\": \"A0\",\n\"lat\": -34.9,\n\"wind_spd_kt\": 8\n}",
+            "{\n\"id\": \"A0\",\n\"lat\": \"0x66f\",\n\"wind_spd_kt\": 8\n}",
+            "{\n\"id\": \"A0\"\n}",
+            "{\n\"id\": \"A0\",\n\"message\": \"And he said to me: \"Don't go\"\"\n}",
+            "{\n\"id\": \"A0\",\n\"value\": \"${{value}}\"\n}",
+    })
+    void getContainer(String input) {
+        parser.parseMessage(input);
+        assertTrue(parser.getContainer().containsKey("A0"));
     }
 }
