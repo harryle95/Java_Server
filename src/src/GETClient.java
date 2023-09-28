@@ -22,7 +22,7 @@ public class GETClient extends SocketClient {
             BufferedReader in,
             String hostname,
             int port,
-            String stationID) throws IOException {
+            String stationID){
         super(clientSocket, out, in);
         this.hostname = hostname;
         this.port = port;
