@@ -13,6 +13,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.*;
 
+//TODO - Add BackUpRunnable
+//TODO - Add HeartBeat/HealthCheck Runnable
 public class AggregationServer {
     private final ConcurrentMap<String, String> database;
     private final ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<String, String>>> archive;
