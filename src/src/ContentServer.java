@@ -71,8 +71,6 @@ public class ContentServer extends SocketClient {
     }
 
     public void run() {
-        // Whether AggregationServer has ACK the PUT msg
-        boolean serverACKPUT = false;
         try {
             HTTPRequest requestGET = formatGETMessage();
             send(requestGET);
