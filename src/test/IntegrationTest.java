@@ -107,6 +107,61 @@ class IntegrationTest {
     }
 
     @Test
+    void testContentServerMultiplePUTRequest() throws IOException{
+        ContentServer.main("127.0.0.1:4567 src/test/utility/json/resources/twoID.txt".split(" "));
+        ContentServer contentServer = ContentServer.from_args("127.0.0.1:4567 src/test/utility/json/resources/twoID.txt".split(" "));
+        contentServer.run();
+        assertEquals("""
+                GET / HTTP/1.1\r
+                Host: 127.0.0.1:4567\r
+                Accept: application/json\r
+                Lamport-Clock: 1\r
+                \r
+                """, contentServer.sentMessages.get(0));
+        assertEquals("""
+                HTTP/1.1 204 No Content\r
+                Content-Type: application/json\r
+                Lamport-Clock: 9\r
+                \r
+                """, contentServer.receivedMessages.get(0));
+        assertEquals("""
+                PUT /src/test/utility/json/resources/twoID.txt HTTP/1.1\r
+                Host: 127.0.0.1:4567\r
+                Accept: application/json\r
+                Content-Type: application/json\r
+                Content-Length: 122\r
+                Lamport-Clock: 11\r
+                \r
+                {
+                "id": "A0",
+                "lat": 10,
+                "lon": 20.2,
+                "wind_spd_kt": "0x00f",
+                "id": "A1",
+                "lat": 10,
+                "lon": 20.2,
+                "wind_spd_kt": "0x00f"
+                }""", contentServer.sentMessages.get(1));
+        assertEquals("""
+                HTTP/1.1 200 OK\r
+                Content-Type: application/json\r
+                Content-Length: 122\r
+                Lamport-Clock: 13\r
+                \r
+                {
+                "id": "A0",
+                "lat": 10,
+                "lon": 20.2,
+                "wind_spd_kt": "0x00f",
+                "id": "A1",
+                "lat": 10,
+                "lon": 20.2,
+                "wind_spd_kt": "0x00f"
+                }""", contentServer.receivedMessages.get(1));
+    }
+
+
+    @Test
     void testClientRequestingBlank() throws IOException {
         GETClient client = GETClient.from_args("127.0.0.1:4567".split(" "));
         client.run();
@@ -153,7 +208,11 @@ class IntegrationTest {
 
 
     @AfterEach
-    void shutDown() throws IOException {
-        server.close();
+    void shutDown(){
+        try {
+            server.close();
+        }catch (IOException e){
+            System.out.println("Already Closed");
+        }
     }
 }
