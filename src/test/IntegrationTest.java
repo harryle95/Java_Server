@@ -8,29 +8,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class IntegrationTest {
     AggregationServer server;
+    private int retries = 0;
 
-    static class StartServer implements Runnable {
-        AggregationServer server;
-
-        public StartServer(AggregationServer server) {
-            this.server = server;
-        }
-
-        @Override
-        public void run() {
-            try {
-                server.start();
-            } catch (IOException e) {
-                System.out.println("Server is closed");
-            }
-        }
-    }
+    private int MAXRETRIES = 5;
 
     @BeforeEach
-    void setUp() throws IOException {
-        server = new AggregationServer("4567".split(" "));
-        Runnable task = new StartServer(server);
-        new Thread(task).start();
+    void setUp() throws IOException, InterruptedException {
+        try {
+            server = new AggregationServer("4567".split(" "));
+            retries = 0;
+            Runnable task = new StartServer(server);
+            new Thread(task).start();
+        } catch (IOException e) {
+            retries += 1;
+            if (retries < MAXRETRIES) {
+                Thread.sleep(500);
+                setUp();
+            } else {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     @Test
@@ -52,10 +49,10 @@ class IntegrationTest {
                 """, client.receivedMessages.get(0));
     }
 
-
     @Test
-    void testContentServerPUTRequest() throws IOException{
-        ContentServer contentServer = ContentServer.from_args("127.0.0.1:4567 src/test/utility/json/resources/twoID.txt".split(" "));
+    void testContentServerPUTRequest() throws IOException {
+        ContentServer contentServer = ContentServer.from_args(("127.0.0.1:4567 " +
+                "src/test/utility/json/resources/twoID.txt").split(" "));
         contentServer.run();
         assertEquals("""
                 GET / HTTP/1.1\r
@@ -107,9 +104,10 @@ class IntegrationTest {
     }
 
     @Test
-    void testContentServerMultiplePUTRequest() throws IOException{
+    void testContentServerMultiplePUTRequest() throws IOException {
         ContentServer.main("127.0.0.1:4567 src/test/utility/json/resources/twoID.txt".split(" "));
-        ContentServer contentServer = ContentServer.from_args("127.0.0.1:4567 src/test/utility/json/resources/twoID.txt".split(" "));
+        ContentServer contentServer = ContentServer.from_args(("127.0.0.1:4567 " +
+                "src/test/utility/json/resources/twoID.txt").split(" "));
         contentServer.run();
         assertEquals("""
                 GET / HTTP/1.1\r
@@ -160,7 +158,6 @@ class IntegrationTest {
                 }""", contentServer.receivedMessages.get(1));
     }
 
-
     @Test
     void testClientRequestingBlank() throws IOException {
         GETClient client = GETClient.from_args("127.0.0.1:4567".split(" "));
@@ -206,13 +203,30 @@ class IntegrationTest {
                 }""", client.receivedMessages.get(0));
     }
 
-
     @AfterEach
-    void shutDown(){
+    void shutDown() {
         try {
             server.close();
-        }catch (IOException e){
+        } catch (IOException e) {
             System.out.println("Already Closed");
+        }
+    }
+
+    static class StartServer implements Runnable {
+        AggregationServer server;
+
+
+        public StartServer(AggregationServer server) {
+            this.server = server;
+        }
+
+        @Override
+        public void run() {
+            try {
+                server.start();
+            } catch (IOException e) {
+                System.out.println("Server is closed");
+            }
         }
     }
 }
