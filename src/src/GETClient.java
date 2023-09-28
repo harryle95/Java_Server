@@ -22,7 +22,7 @@ public class GETClient extends SocketClient {
             BufferedReader in,
             String hostname,
             int port,
-            String stationID){
+            String stationID) {
         super(clientSocket, out, in);
         this.hostname = hostname;
         this.port = port;
@@ -56,21 +56,16 @@ public class GETClient extends SocketClient {
         return request;
     }
 
-    public void run() {
-        try {
-            HTTPRequest request = formatGETMessage();
-            send(request);
-            while (true) {
-                String response = receive();
-                if (response != null)
-                    System.out.println(response);
-                break;
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } finally {
-            close();
+    public void run() throws IOException {
+        HTTPRequest request = formatGETMessage();
+        send(request);
+        while (true) {
+            String response = receive();
+            if (response != null)
+                System.out.println(response);
+            break;
         }
+        close();
     }
 
     public static void main(String[] argv) throws IOException {
