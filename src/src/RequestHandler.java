@@ -31,7 +31,7 @@ public class RequestHandler implements Callable<HTTPResponse> {
             ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<String, String>>> archive
     ) {
         this.request = request;
-        priority = clock.printTimestamp();
+        priority = clock.getTimeStamp();
         this.updateQueue = updateQueue;
         this.database = database;
         this.archive = archive;

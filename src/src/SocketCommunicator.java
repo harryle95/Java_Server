@@ -36,11 +36,11 @@ public abstract class SocketCommunicator {
         if (encodedResponse != null) {
             if (type.equals("client")) {
                 HTTPResponse response = HTTPResponse.fromMessage(MessageExchanger.decode(encodedResponse));
-                clock.setTimestamp(Integer.parseInt(response.header.get("Lamport-Clock")));
+                clock.advanceAndSetTimeStamp(Integer.parseInt(response.header.get("Lamport-Clock")));
                 return response.toString();
             } else {
                 HTTPRequest request = HTTPRequest.fromMessage(MessageExchanger.decode(encodedResponse));
-                clock.setTimestamp(Integer.parseInt(request.header.get("Lamport-Clock")));
+                clock.advanceAndSetTimeStamp(Integer.parseInt(request.header.get("Lamport-Clock")));
                 return request.toString();
             }
         }
@@ -49,7 +49,7 @@ public abstract class SocketCommunicator {
 
 
     public void send(HTTPMessage message) {
-        int TS = clock.getTimestamp();
+        int TS = clock.advanceAndGetTimeStamp();
         message.setHeader("Lamport-Clock", String.valueOf(TS));
         out.println(MessageExchanger.encode(message.toString()));
     }
