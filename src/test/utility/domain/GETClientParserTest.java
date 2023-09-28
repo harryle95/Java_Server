@@ -1,7 +1,6 @@
 package utility.domain;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
@@ -61,9 +60,7 @@ class GETClientParserTest {
     })
     void testRuntimeException(String args) {
         String[] argv = args.split(" ");
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            parser.parse(argv);
-        });
+        assertThrows(RuntimeException.class, () -> parser.parse(argv));
     }
 
 }

@@ -9,7 +9,7 @@ public interface HTTPMessage {
      * @param value header value
      * @return HTTPMessage message
      */
-    public HTTPMessage setHeader(String key, String value);
+    HTTPMessage setHeader(String key, String value);
 
 
     /**
@@ -17,5 +17,5 @@ public interface HTTPMessage {
      *
      * @return HTTPMessage as string
      */
-    public String toString();
+    String toString();
 }

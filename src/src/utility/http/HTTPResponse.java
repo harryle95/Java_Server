@@ -1,6 +1,5 @@
 package utility.http;
 
-import java.net.http.HttpResponse;
 import java.util.LinkedHashMap;
 import java.util.Map;
 

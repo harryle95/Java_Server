@@ -8,7 +8,7 @@ public abstract class DomainParser {
      * URL must be of the following 3 forms:
      * hostname:port
      * http://hostname:port
-     * http://hostname.domain*:port
+     * http://hostname.domain:port
      *
      * @param URL url string
      * @return ServerInformation containing hostname and port info
