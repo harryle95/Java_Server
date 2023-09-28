@@ -111,9 +111,9 @@ public class RequestHandler implements Callable<HTTPResponse> {
         while (updateQueue.size() > 20) {
             // Remove stale updates from the beginning of the queue
             FileMetadata popData = updateQueue.poll();
-            String popIP = popData.getRemoteIP();
-            String popFileName = popData.getFileName();
-            String popTS = popData.getTimestamp();
+            String popIP = popData.remoteIP();
+            String popFileName = popData.fileName();
+            String popTS = popData.timestamp();
             if (archive.containsKey(popIP) && archive.get(popIP).containsKey(popFileName)) {
                 String archiveTS = archive.get(popIP).get(popFileName).get("Timestamp");
                 // If old data hasn't been updated since -> Remove

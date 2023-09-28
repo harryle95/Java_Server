@@ -9,14 +9,15 @@ public class GETClientParser extends DomainParser {
      */
     @Override
     public GETServerInformation parse(String[] argv) {
+        if (argv==null || argv.length == 0)
+            throw new RuntimeException("Usage GETClient URL [stationID]");
         GETServerInformation result = new GETServerInformation(parseURL(argv[0]));
-        if (argv.length == 1) {
+        if (argv.length == 1)
             return result;
-        } else if (argv.length == 2) {
+        if (argv.length == 2) {
             result.setStationID(argv[1]);
             return result;
-        } else {
-            throw new RuntimeException("Usage GETClient URL [stationID]");
         }
+        throw new RuntimeException("Usage GETClient URL [stationID]");
     }
 }

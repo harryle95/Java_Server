@@ -3,6 +3,11 @@ package utility;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
+/**
+ * Message encoding and decoding class.
+ * <p>
+ * Useful for socket send and receive for long messages containing linebreak
+ */
 public class MessageExchanger {
     /**
      * Encode UTF8. Useful for sending and receiving whole message

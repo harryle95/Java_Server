@@ -1,10 +1,18 @@
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class GETClientTest {
 
+    @Test
+    void testNoArgument() {
+        assertThrows(RuntimeException.class, () -> {
+            GETClient client = new GETClient("".split(" "));
+        });
+    }
 
     @ParameterizedTest
     @ValueSource(strings = {

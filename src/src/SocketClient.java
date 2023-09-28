@@ -22,9 +22,6 @@ public class SocketClient extends SocketCommunicator {
 
     private String hostname;
 
-    public int printTimestamp() {
-        return clock.getTimeStamp();
-    }
 
     private int port;
 
