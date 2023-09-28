@@ -1,6 +1,7 @@
 package utility.domain;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
@@ -55,6 +56,8 @@ class GETClientParserTest {
             "http//localhost:asd asda",
             "http://localhost.domain: asd",
             "http://localhost:domain1.domain2:8080 1234",
+            "http://localhost:8080 data1 data2",
+            "http://localhost:8080 data1 data2 data3 data4",
     })
     void testRuntimeException(String args) {
         String[] argv = args.split(" ");
