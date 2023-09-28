@@ -20,7 +20,7 @@ class GETClientTest {
                 Host: localhost:8080\r
                 Accept: application/json\r
                 \r
-                """, client.formatMessage().build());
+                """, client.formatMessage().toString());
     }
 
     @ParameterizedTest
@@ -37,7 +37,7 @@ class GETClientTest {
                 Host: localhost:8080\r
                 Accept: application/json\r
                 \r
-                """, client.formatMessage().build());
+                """, client.formatMessage().toString());
     }
 
     @ParameterizedTest

@@ -15,7 +15,7 @@ class HTTPResponseTest {
                 setReasonPhrase("OK").
                 setHeader("Content-Type", "application/json").
                 setBody("{\"id\": \"dog\"}").
-                build();
+                toString();
         assertEquals("HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"id\": \"dog\"}", message);
     }
 
@@ -25,7 +25,7 @@ class HTTPResponseTest {
                 setStatusCode("200").
                 setReasonPhrase("OK").
                 setHeader("Content-Type", "application/json").
-                build();
+                toString();
         assertEquals("HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n", message);
     }
 
@@ -36,7 +36,7 @@ class HTTPResponseTest {
                 setReasonPhrase("Created").
                 setHeader("Content-Type", "application/json").
                 setBody("{\"id\": \"dog\"}").
-                build();
+                toString();
         assertEquals("HTTP/1.1 201 Created\r\nContent-Type: application/json\r\n\r\n{\"id\": \"dog\"}", message);
     }
 
@@ -46,7 +46,7 @@ class HTTPResponseTest {
                 setStatusCode("201").
                 setReasonPhrase("Created").
                 setHeader("Content-Type", "application/json").
-                build();
+                toString();
         assertEquals("HTTP/1.1 201 Created\r\nContent-Type: application/json\r\n\r\n", message);
     }
 
@@ -56,7 +56,7 @@ class HTTPResponseTest {
                 setStatusCode("204").
                 setReasonPhrase("No Content").
                 setHeader("Content-Type", "application/json").
-                build();
+                toString();
         assertEquals("HTTP/1.1 204 No Content\r\nContent-Type: application/json\r\n\r\n", message);
     }
 
@@ -66,7 +66,7 @@ class HTTPResponseTest {
                 setStatusCode("400").
                 setReasonPhrase("Bad Request").
                 setHeader("Content-Type", "application/json").
-                build();
+                toString();
         assertEquals("HTTP/1.1 400 Bad Request\r\nContent-Type: application/json\r\n\r\n", message);
     }
 
@@ -76,7 +76,7 @@ class HTTPResponseTest {
                 setStatusCode("500").
                 setReasonPhrase("Internal Server Error").
                 setHeader("Content-Type", "application/json").
-                build();
+                toString();
         assertEquals("HTTP/1.1 500 Internal Server Error\r\nContent-Type: application/json\r\n\r\n", message);
     }
 
@@ -92,6 +92,6 @@ class HTTPResponseTest {
     })
     void fromMessage(String message) {
         HTTPResponse response = HTTPResponse.fromMessage(message);
-        assertEquals(message, response.build());
+        assertEquals(message, response.toString());
     }
 }

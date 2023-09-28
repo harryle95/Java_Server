@@ -23,6 +23,12 @@ public class HTTPRequest implements HTTPMessage {
         this.body = body;
     }
 
+    /**
+     * Set method in request header (GET/PUT/POST/etc)
+     *
+     * @param method headerline request method  - i.e. GET/PUT
+     * @return the current HTTP Request builder object
+     */
     public HTTPRequest setMethod(String method) {
         this.method = method.toUpperCase();
         return this;
@@ -33,17 +39,30 @@ public class HTTPRequest implements HTTPMessage {
         return this;
     }
 
+    /**
+     * Set HTTP Request header
+     *
+     * @param key   header key
+     * @param value header value
+     * @return the current HTTPRequest builder object
+     */
     public HTTPRequest setHeader(String key, String value) {
         this.header.put(key, value);
         return this;
     }
 
+    /**
+     * Set HTTP Request body
+     *
+     * @param body body text
+     * @return the current HTTPRequest builder object
+     */
     public HTTPRequest setBody(String body) {
         this.body = body;
         return this;
     }
 
-    public String build() {
+    public String toString() {
         StringBuilder message = new StringBuilder();
 
         // Add request line

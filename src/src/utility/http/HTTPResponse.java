@@ -49,7 +49,7 @@ public class HTTPResponse implements HTTPMessage {
         return this;
     }
 
-    public String build() {
+    public String toString() {
         StringBuilder message = new StringBuilder();
 
         // Add request line

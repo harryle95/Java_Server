@@ -38,7 +38,7 @@ class ContentServerTest {
         Path expFilePath = workDir.resolve("exp" + fileName);
         String body = String.join("\n", Files.readAllLines(expFilePath));
         String message = String.format("PUT /%s HTTP/1.1\r\nHost: localhost:8080\r\nAccept: application/json\r\nContent-Type: application/json\r\nContent-Length: %d\r\n\r\n%s ", client.getFileName(), body.length(), body).trim();
-        assertEquals(message, client.formatMessage().build());
+        assertEquals(message, client.formatMessage().toString());
     }
 
 }

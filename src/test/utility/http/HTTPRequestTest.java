@@ -16,7 +16,7 @@ class HTTPRequestTest {
                 setURI("/data").
                 setHeader("Host", "localhost:8080").
                 setHeader("Accept", "application/json").
-                build();
+                toString();
         assertEquals("GET /data HTTP/1.1\r\nHost: localhost:8080\r\nAccept: application/json\r\n\r\n", message);
     }
 
@@ -27,7 +27,7 @@ class HTTPRequestTest {
                 setMethod("GET").
                 setURI("/").
                 setHeader("Host", "localhost:8080").
-                build();
+                toString();
         assertEquals("GET / HTTP/1.1\r\nHost: localhost:8080\r\n\r\n", message);
     }
 
@@ -36,7 +36,7 @@ class HTTPRequestTest {
         String message = new HTTPRequest("1.1").
                 setMethod("GET").
                 setURI("localhost:8080/data").
-                build();
+                toString();
         assertEquals("GET localhost:8080/data HTTP/1.1\r\n\r\n", message);
     }
 
@@ -47,7 +47,7 @@ class HTTPRequestTest {
                 setURI("localhost:8080/data").
                 setHeader("Accept", "application/json").
                 setBody("{Animal: Dog}").
-                build();
+                toString();
         assertEquals("PUT localhost:8080/data HTTP/1.1\r\nAccept: application/json\r\n\r\n{Animal: Dog}", message);
     }
 
@@ -60,7 +60,7 @@ class HTTPRequestTest {
                 setHeader("Accept", "application/json").
                 setHeader("Content-Length", "12").
                 setBody("{Animal: Dog}").
-                build();
+                toString();
         assertEquals("PUT localhost:8080/data HTTP/1.1\r\nAccept: application/json\r\nContent-Length: 12\r\n\r\n{Animal: Dog}", message);
     }
 
@@ -73,7 +73,7 @@ class HTTPRequestTest {
                 setHeader("Accept", "application/json").
                 setHeader("Content-Length", "12").
                 setBody("{Animal: Dog}").
-                build();
+                toString();
         assertEquals("PUT /data HTTP/1.1\r\nHost: localhost:8080\r\nAccept: application/json\r\nContent-Length: 12\r\n\r\n{Animal: Dog}", message);
     }
 
@@ -88,6 +88,6 @@ class HTTPRequestTest {
     })
     void fromMessage(String message) {
         HTTPRequest request = HTTPRequest.fromMessage(message);
-        assertEquals(message, request.build());
+        assertEquals(message, request.toString());
     }
 }

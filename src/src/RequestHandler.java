@@ -38,6 +38,7 @@ public class RequestHandler implements Callable<HTTPResponse> {
         this.remoteIP = remoteIP;
     }
 
+
     public HTTPResponse handleGET() {
         // Empty GET request
         String stationID = request.getURIEndPoint();
