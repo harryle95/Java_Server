@@ -11,11 +11,25 @@ public class HTTPResponse implements HTTPMessage {
     public Map<String, String> header;
     public String body;
 
+    /**
+     * HTTPResponse builder
+     *
+     * @param version HTTP version
+     */
     public HTTPResponse(String version) {
         this.version = version;
         this.header = new LinkedHashMap<>();
     }
 
+    /**
+     * HTTPResponse builder
+     *
+     * @param version      HTTP version
+     * @param statusCode   HTTP response status code
+     * @param reasonPhrase HTTP response reasonPhrase
+     * @param header       HTTP response header
+     * @param body         HTTP response body
+     */
     public HTTPResponse(
             String version,
             String statusCode,
@@ -29,26 +43,56 @@ public class HTTPResponse implements HTTPMessage {
         this.body = body;
     }
 
+    /**
+     * Set status code in response message
+     *
+     * @param statusCode status code value
+     * @return this HTTPResponse for method chaining
+     */
     public HTTPResponse setStatusCode(String statusCode) {
         this.statusCode = statusCode;
         return this;
     }
 
+    /**
+     * Set reasons phrase in response message
+     *
+     * @param reasonPhrase reason phrase value
+     * @return this HTTPResponse for method chaining
+     */
     public HTTPResponse setReasonPhrase(String reasonPhrase) {
         this.reasonPhrase = reasonPhrase;
         return this;
     }
 
+    /**
+     * Set HTTP response header
+     *
+     * @param key   header key
+     * @param value header value
+     * @return this HTTPResponse for method chaining
+     */
     public HTTPResponse setHeader(String key, String value) {
         this.header.put(key, value);
         return this;
     }
 
+    /**
+     * Set HTTP response body
+     *
+     * @param body body message
+     * @return this HTTPResponse for method chaining
+     */
     public HTTPResponse setBody(String body) {
         this.body = body;
         return this;
     }
 
+    /**
+     * Generate HTTPResponse message string
+     *
+     * @return HTTPResponse message string
+     */
     public String toString() {
         StringBuilder message = new StringBuilder();
 
@@ -71,6 +115,12 @@ public class HTTPResponse implements HTTPMessage {
         return message.toString();
     }
 
+    /**
+     * Generate HTTPResponse object based on a received message
+     *
+     * @param message socket received message
+     * @return HTTPResponse object from message
+     */
     public static HTTPResponse fromMessage(String message) {
         int index;
         String[] components = message.split("\r\n");
