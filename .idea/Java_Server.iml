@@ -8,11 +8,12 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="junit-platform-console-standalone-1.9.3" level="project" />
-    <orderEntry type="library" exported="" name="mockito-core-5.5.0" level="project" />
-    <orderEntry type="library" exported="" name="mockito-junit-jupiter-5.5.0-javadoc" level="project" />
-    <orderEntry type="library" exported="" name="byte-buddy-1.14.8" level="project" />
-    <orderEntry type="library" exported="" name="byte-buddy-agent-1.14.8" level="project" />
-    <orderEntry type="library" exported="" name="objenesis-3.3" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="junit-platform-console-standalone-1.9.3" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="mockito-core-5.5.0" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="mockito-junit-jupiter-5.5.0-javadoc" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="byte-buddy-1.14.8" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="byte-buddy-agent-1.14.8" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="objenesis-3.3" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="mockito-junit-jupiter-5.5.0" level="project" />
   </component>
 </module>
