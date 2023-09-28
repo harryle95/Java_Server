@@ -10,11 +10,25 @@ public class HTTPRequest implements HTTPMessage {
     public Map<String, String> header;
     public String body;
 
+    /**
+     * HTTP Request builder object
+     *
+     * @param version - HTTP version
+     */
     public HTTPRequest(String version) {
         this.version = version;
         this.header = new LinkedHashMap<>();
     }
 
+    /**
+     * HTTP Request builder object
+     *
+     * @param method  - method in request line
+     * @param uri     - uri - must be a full uri
+     * @param version - HTTP version
+     * @param header  - header map
+     * @param body    - request content
+     */
     public HTTPRequest(String method, String uri, String version, Map<String, String> header, String body) {
         this.method = method;
         this.uri = uri;
@@ -26,7 +40,7 @@ public class HTTPRequest implements HTTPMessage {
     /**
      * Set method in request header (GET/PUT/POST/etc)
      *
-     * @param method headerline request method  - i.e. GET/PUT
+     * @param method header line request method  - i.e. GET/PUT
      * @return the current HTTP Request builder object
      */
     public HTTPRequest setMethod(String method) {
@@ -62,6 +76,11 @@ public class HTTPRequest implements HTTPMessage {
         return this;
     }
 
+    /**
+     * Generate HTTP Request as a string object from the current state
+     *
+     * @return HTTP String message
+     */
     public String toString() {
         StringBuilder message = new StringBuilder();
 
@@ -84,6 +103,12 @@ public class HTTPRequest implements HTTPMessage {
         return message.toString();
     }
 
+    /**
+     * Generate HTTPRequest object based on a received message
+     *
+     * @param message socket received message
+     * @return HTTPRequest object from message
+     */
     public static HTTPRequest fromMessage(String message) {
         String[] components = message.split("\r\n");
         String requestLine = components[0];
@@ -106,10 +131,18 @@ public class HTTPRequest implements HTTPMessage {
         return new HTTPRequest(method, uri, version, header, body);
     }
 
+    /**
+     * Get resource endpoint
+     * <p>
+     * Resource can be stationID (GET) or fileName (PUT)
+     *
+     * @return stationID or fileName
+     */
     public String getURIEndPoint() {
-        if (uri.length() == 1)
+        int index = uri.indexOf('/');
+        if (index == uri.length()-1)
             return null;
-        return uri.substring(1);
+        return uri.substring(index + 1);
     }
 
 }
