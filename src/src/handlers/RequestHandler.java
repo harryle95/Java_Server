@@ -67,6 +67,7 @@ public class RequestHandler implements Callable<HTTPResponse> {
     }
 
     public HTTPResponse handlePUT() throws InterruptedException {
+        HTTPResponse response = generateHTTPResponseToPUT();
         // Remove updates older than 20 most recent
         removeStalePUTDataFromArchive();
 
@@ -77,7 +78,7 @@ public class RequestHandler implements Callable<HTTPResponse> {
         updateStationDatabase();
 
         // Return response
-        return generateHTTPResponseToPUT();
+        return response;
     }
 
     private void updateStationDatabase() {
