@@ -13,6 +13,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 
+import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.*;
@@ -112,6 +113,15 @@ class GETClientNonExistIDTest extends GETClientTest {
         verify(in, times(1)).readLine();
         verify(out, times(1)).println(anyString());
         verify(clientSocket, times(1)).close();
+    }
+
+    @Test
+    void testClosingClosedConnection() throws IOException {
+        doNothing().doThrow(IOException.class).when(clientSocket).close();
+        assertThrows(RuntimeException.class, ()->{
+            client.close();
+            client.close();
+        });
     }
 
 

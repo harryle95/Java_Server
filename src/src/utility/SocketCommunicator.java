@@ -1,7 +1,9 @@
 package utility;
+
 import utility.http.HTTPMessage;
 import utility.http.HTTPRequest;
 import utility.http.HTTPResponse;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -57,7 +59,7 @@ public abstract class SocketCommunicator {
             clientSocket.close();
             System.out.println("Closing connection");
         } catch (IOException e) {
-            System.out.println("Socket already closed");
+            throw new RuntimeException(e);
         }
     }
 }
