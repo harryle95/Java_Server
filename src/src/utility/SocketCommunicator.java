@@ -1,14 +1,9 @@
 package utility;
-
-import utility.LamportClock;
-import utility.MessageExchanger;
 import utility.http.HTTPMessage;
 import utility.http.HTTPRequest;
 import utility.http.HTTPResponse;
-
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
@@ -20,13 +15,12 @@ public abstract class SocketCommunicator {
     protected LamportClock clock;
     String type;
 
-
     public SocketCommunicator(
             Socket clientSocket,
             LamportClock clock,
             PrintWriter out,
             BufferedReader in,
-            String type) throws IOException {
+            String type) {
         this.clientSocket = clientSocket;
         this.clock = clock;
         this.in = in;

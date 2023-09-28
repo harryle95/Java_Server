@@ -10,20 +10,12 @@ public class SocketClient extends SocketCommunicator {
             Socket clientSocket,
             PrintWriter out,
             BufferedReader in) throws IOException {
-        super(
-                clientSocket,
-                new LamportClock(),
-                out,
-                in,
-                "client");
+        super(clientSocket, new LamportClock(), out, in, "client");
     }
-
 
     protected String hostname;
 
-
     protected int port;
-
 
     public String getHostname() {
         return hostname;
@@ -32,5 +24,4 @@ public class SocketClient extends SocketCommunicator {
     public int getPort() {
         return port;
     }
-
 }

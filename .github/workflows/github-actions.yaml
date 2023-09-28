@@ -11,6 +11,6 @@ jobs:
         uses: actions/setup-java@v3.13.0
         with:
           distribution: 'temurin' # See 'Supported distributions' for available options
-          java-version: '17'
+          java-version: '20'
       - name: run test
         run: make run_test

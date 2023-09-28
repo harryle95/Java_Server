@@ -8,10 +8,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.net.UnknownHostException;
 
 public class GETClient extends SocketClient {
-    private String stationID;
+    public String getStationID() {
+        return stationID;
+    }
+
+    private final String stationID;
 
     public GETClient(
             Socket clientSocket,
@@ -36,13 +39,6 @@ public class GETClient extends SocketClient {
         return new GETClient(clientSocket, out, in, info.hostname, info.port, info.stationID);
     }
 
-    public String getStationID() {
-        return stationID;
-    }
-
-    public void setStationID(String stationID) {
-        this.stationID = stationID;
-    }
 
     public HTTPRequest formatMessage() {
         HTTPRequest request = new HTTPRequest("1.1").setMethod("GET");

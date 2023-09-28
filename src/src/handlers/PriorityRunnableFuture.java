@@ -1,6 +1,4 @@
 package handlers;
-
-import java.util.Comparator;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
@@ -41,20 +39,6 @@ public class PriorityRunnableFuture<T> implements RunnableFuture<T> {
         return src.get(timeout, unit);
     }
 
-    @Override
-    public T resultNow() {
-        return src.resultNow();
-    }
-
-    @Override
-    public Throwable exceptionNow() {
-        return src.exceptionNow();
-    }
-
-    @Override
-    public State state() {
-        return src.state();
-    }
 
     @Override
     public void run() {
