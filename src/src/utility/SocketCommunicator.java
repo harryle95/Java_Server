@@ -1,11 +1,15 @@
 package utility;
+
 import utility.http.HTTPMessage;
 import utility.http.HTTPRequest;
 import utility.http.HTTPResponse;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class SocketCommunicator {
     protected Socket clientSocket;
@@ -14,6 +18,10 @@ public abstract class SocketCommunicator {
 
     protected LamportClock clock;
     String type;
+
+    public List<String> sentMessages;
+
+    public List<String> receivedMessages;
 
     public SocketCommunicator(
             Socket clientSocket,
@@ -26,6 +34,8 @@ public abstract class SocketCommunicator {
         this.in = in;
         this.out = out;
         this.type = type;
+        sentMessages = new ArrayList<>();
+        receivedMessages = new ArrayList<>();
     }
 
     public String receive() throws IOException {
@@ -34,10 +44,12 @@ public abstract class SocketCommunicator {
             if (type.equals("client")) {
                 HTTPResponse response = HTTPResponse.fromMessage(MessageExchanger.decode(encodedResponse));
                 clock.advanceAndSetTimeStamp(Integer.parseInt(response.header.get("Lamport-Clock")));
+                receivedMessages.add(response.toString());
                 return response.toString();
             } else {
                 HTTPRequest request = HTTPRequest.fromMessage(MessageExchanger.decode(encodedResponse));
                 clock.advanceAndSetTimeStamp(Integer.parseInt(request.header.get("Lamport-Clock")));
+                receivedMessages.add(request.toString());
                 return request.toString();
             }
         }
@@ -48,6 +60,7 @@ public abstract class SocketCommunicator {
     public void send(HTTPMessage message) {
         int TS = clock.advanceAndGetTimeStamp();
         message.setHeader("Lamport-Clock", String.valueOf(TS));
+        sentMessages.add(message.toString());
         out.println(MessageExchanger.encode(message.toString()));
     }
 
@@ -57,7 +70,7 @@ public abstract class SocketCommunicator {
             clientSocket.close();
             System.out.println("Closing connection");
         } catch (IOException e) {
-            System.out.println("Socket already closed");
+            throw new RuntimeException(e);
         }
     }
 }

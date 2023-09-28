@@ -52,12 +52,15 @@ public class RequestHandler implements Callable<HTTPResponse> {
                     .setHeader("Content-Type", "application/json")
                     .setBody("");
         // Station ID data is available
-        if (database.containsKey(stationID))
+        if (database.containsKey(stationID)) {
+            String body = "{\n" + database.get(stationID) + "\n}";
             return new HTTPResponse("1.1")
                     .setStatusCode("200")
                     .setReasonPhrase("OK")
                     .setHeader("Content-Type", "application/json")
-                    .setBody(database.get(stationID));
+                    .setHeader("Content-Length", String.valueOf(body.length()))
+                    .setBody(body);
+        }
         // Station ID data unavailable
         return new HTTPResponse("1.1")
                 .setStatusCode("404")
@@ -67,6 +70,7 @@ public class RequestHandler implements Callable<HTTPResponse> {
     }
 
     public HTTPResponse handlePUT() throws InterruptedException {
+        HTTPResponse response = generateHTTPResponseToPUT();
         // Remove updates older than 20 most recent
         removeStalePUTDataFromArchive();
 
@@ -77,7 +81,7 @@ public class RequestHandler implements Callable<HTTPResponse> {
         updateStationDatabase();
 
         // Return response
-        return generateHTTPResponseToPUT();
+        return response;
     }
 
     private void updateStationDatabase() {

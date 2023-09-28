@@ -53,18 +53,20 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
             String message;
             while (true) {
                 message = receive();
+                // Client will close the connection
                 if (message == null)
                     break;
+                System.out.println(message);
                 HTTPRequest request = HTTPRequest.fromMessage(message);
                 // Save metadata to remove archive's entry 30s after disconnection
                 if (request.method.equals("PUT"))
-                    metadataPUT = new FileMetadata(clientSocket.getRemoteSocketAddress().toString(),
+                    metadataPUT = new FileMetadata(clientSocket.getInetAddress().toString(),
                             request.getURIEndPoint(), String.valueOf(clock.getTimeStamp()));
 
                 // Submit request to a task queue and get the Future as a CompletionService
                 Callable<HTTPResponse> task = new RequestHandler(
                         request,
-                        clientSocket.getRemoteSocketAddress().toString(),
+                        clientSocket.getInetAddress().toString(),
                         clock.getTimeStamp(),
                         updateQueue,
                         database,
@@ -72,7 +74,9 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
                         archive
                 );
                 Future<HTTPResponse> future = requestHandlerPool.submit(task);
-                send(future.get());
+                HTTPResponse futureResponse = future.get();
+                System.out.println(futureResponse);
+                send(futureResponse);
             }
             // Submit a cleanup task if request is PUT
             if (metadataPUT != null) {
