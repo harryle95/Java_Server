@@ -72,7 +72,7 @@ public class AggregationServer {
                     clientSocket,
                     new BufferedReader(new InputStreamReader(clientSocket.getInputStream())),
                     new PrintWriter(clientSocket.getOutputStream(), true),
-                    clock, database, archive, requestHandlerPool, updateQueue));
+                    clock, database, archive, requestHandlerPool, updateQueue, schedulePool));
         }
     }
 
