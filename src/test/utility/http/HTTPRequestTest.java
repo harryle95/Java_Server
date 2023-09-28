@@ -90,4 +90,25 @@ class HTTPRequestTest {
         HTTPRequest request = HTTPRequest.fromMessage(message);
         assertEquals(message, request.toString());
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "GET /data HTTP/1.1\r\nHost: localhost:8080\r\nAccept: application/json\r\n\r\n",
+            "GET localhost:8080/data HTTP/1.1\r\n\r\n",
+            "PUT localhost:8080/data HTTP/1.1\r\nAccept: application/json\r\n\r\n{Animal: Dog}",
+            "PUT localhost:8080/data HTTP/1.1\r\nAccept: application/json\r\nContent-Length: 12\r\n\r\n{Animal: Dog}",
+            "PUT /data HTTP/1.1\r\nHost: localhost:8080\r\nAccept: application/json\r\nContent-Length: 12\r\n\r\n{Animal: Dog}"
+    })
+    void testEndPoint(String message) {
+        HTTPRequest request = HTTPRequest.fromMessage(message);
+        assertEquals("data", request.getURIEndPoint());
+    }
+
+
+    @Test
+    void testNullEndPoint() {
+        HTTPRequest request = HTTPRequest.fromMessage("GET / HTTP/1.1\r\nHost: localhost:8080\r\nAccept: application/json\r\n\r\n");
+        assertNull(request.getURIEndPoint());
+    }
+
 }
