@@ -1,5 +1,9 @@
+package handlers;
+
+import handlers.RequestHandler;
 import utility.FileMetadata;
 import utility.LamportClock;
+import utility.SocketCommunicator;
 import utility.http.HTTPRequest;
 import utility.http.HTTPResponse;
 
@@ -52,8 +56,8 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
                 Future<HTTPResponse> future = requestHandlerPool.submit(task);
                 send(future.get());
             }
+            // TODO: submit cleaning task
             System.out.println("Closing socket");
-            clientSocket.close();
         } catch (IOException | ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         }

@@ -1,3 +1,5 @@
+package utility;
+
 import utility.LamportClock;
 import utility.MessageExchanger;
 import utility.http.HTTPMessage;
@@ -11,11 +13,11 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 public abstract class SocketCommunicator {
-    Socket clientSocket;
+    protected Socket clientSocket;
     PrintWriter out;
     BufferedReader in;
 
-    LamportClock clock;
+    protected LamportClock clock;
     String type;
 
     public SocketCommunicator() {

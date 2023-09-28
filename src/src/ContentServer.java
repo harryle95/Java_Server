@@ -1,3 +1,4 @@
+import utility.SocketClient;
 import utility.domain.ContentServerInformation;
 import utility.domain.ContentServerParser;
 import utility.http.HTTPRequest;
