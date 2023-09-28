@@ -2,6 +2,17 @@ package utility.domain;
 
 public abstract class DomainParser {
 
+    /**
+     * Parse URL component, return hostname, port info
+     * <p>
+     * URL must be of the following 3 forms:
+     * hostname:port
+     * http://hostname:port
+     * http://hostname.domain:port
+     *
+     * @param URL url string
+     * @return ServerInformation containing hostname and port info
+     */
     protected ServerInformation parseURL(String URL) {
         String[] split_string = URL.split(":");
         if (split_string.length == 2) {

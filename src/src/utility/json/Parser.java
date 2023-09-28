@@ -12,6 +12,11 @@ import java.util.regex.Pattern;
 
 public class Parser {
 
+    /**
+     * Get underlying container object
+     *
+     * @return container object
+     */
     public Map<String, WeatherData> getContainer() {
         return container;
     }
@@ -19,6 +24,12 @@ public class Parser {
     private final Map<String, WeatherData> container;
     private WeatherData data;
 
+    /**
+     * JSON Parser.
+     * <p>
+     * Parse JSON message from HTTPRequest Body or File and
+     * generate a Map of StationID and station data
+     */
     public Parser() {
         container = new LinkedHashMap<>();
         data = new WeatherData();
@@ -166,7 +177,6 @@ public class Parser {
                 container.put(id, data);
             }
         }
-
     }
 
 

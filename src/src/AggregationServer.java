@@ -1,6 +1,14 @@
+import handlers.ConnectionHandler;
+import handlers.RequestHandler;
+import utility.FileMetadata;
 import utility.LamportClock;
+import handlers.PriorityRunnableFuture;
+import handlers.PriorityRunnableFutureComparator;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.*;
@@ -61,7 +69,10 @@ public class AggregationServer {
 
             // Connection Pool listen for incoming requests
             connectionHandlerPool.execute(new ConnectionHandler(
-                    clientSocket, clock, database, archive, requestHandlerPool, updateQueue));
+                    clientSocket,
+                    new BufferedReader(new InputStreamReader(clientSocket.getInputStream())),
+                    new PrintWriter(clientSocket.getOutputStream(), true),
+                    clock, database, archive, requestHandlerPool, updateQueue));
         }
     }
 

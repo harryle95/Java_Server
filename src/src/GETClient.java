@@ -1,28 +1,44 @@
+import utility.SocketClient;
 import utility.domain.GETClientParser;
 import utility.domain.GETServerInformation;
 import utility.http.HTTPRequest;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
 
 public class GETClient extends SocketClient {
-    private String stationID;
-
-    public GETClient(String[] argv) {
-        super();
-        GETClientParser parser = new GETClientParser();
-        GETServerInformation info = parser.parse(argv);
-        setHostname(info.hostname);
-        setPort(info.port);
-        setStationID(info.stationID);
-    }
-
     public String getStationID() {
         return stationID;
     }
 
-    public void setStationID(String stationID) {
+    private final String stationID;
+
+    public GETClient(
+            Socket clientSocket,
+            PrintWriter out,
+            BufferedReader in,
+            String hostname,
+            int port,
+            String stationID){
+        super(clientSocket, out, in);
+        this.hostname = hostname;
+        this.port = port;
         this.stationID = stationID;
     }
+
+
+    public static GETClient from_args(String[] argv) throws IOException {
+        GETClientParser parser = new GETClientParser();
+        GETServerInformation info = parser.parse(argv);
+        Socket clientSocket = new Socket(info.hostname, info.port);
+        BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+        return new GETClient(clientSocket, out, in, info.hostname, info.port, info.stationID);
+    }
+
 
     public HTTPRequest formatMessage() {
         HTTPRequest request = new HTTPRequest("1.1").setMethod("GET");
@@ -42,7 +58,6 @@ public class GETClient extends SocketClient {
 
     public void run() {
         try {
-            connect();
             HTTPRequest request = formatMessage();
             send(request);
             while (true) {
@@ -58,8 +73,8 @@ public class GETClient extends SocketClient {
         }
     }
 
-    public static void main(String[] argv) {
-        GETClient client = new GETClient(argv);
+    public static void main(String[] argv) throws IOException {
+        GETClient client = GETClient.from_args(argv);
         client.run();
     }
 }

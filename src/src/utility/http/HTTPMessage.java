@@ -2,7 +2,20 @@ package utility.http;
 
 public interface HTTPMessage {
 
-    public HTTPMessage setHeader(String key, String value);
+    /**
+     * Set message header
+     *
+     * @param key   header key
+     * @param value header value
+     * @return HTTPMessage message
+     */
+    HTTPMessage setHeader(String key, String value);
 
-    public String build();
+
+    /**
+     * Generate HTTPMessage string based on builder
+     *
+     * @return HTTPMessage as string
+     */
+    String toString();
 }
