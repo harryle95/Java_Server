@@ -9,7 +9,7 @@ public class SocketClient extends SocketCommunicator {
     public SocketClient(
             Socket clientSocket,
             PrintWriter out,
-            BufferedReader in) throws IOException {
+            BufferedReader in) {
         super(clientSocket, new LamportClock(), out, in, "client");
     }
 
