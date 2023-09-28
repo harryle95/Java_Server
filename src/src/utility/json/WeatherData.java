@@ -26,21 +26,21 @@ public class WeatherData {
      * @param key   key
      * @param value value
      */
-    public void put(String key, String value) {
+    public Object put(String key, String value) {
         if (numericFields.contains(key)) {
             try {
                 int intVal = Integer.parseInt(value);
-                fields.put(key, intVal);
+                return fields.put(key, intVal);
             } catch (Exception e) {
                 try {
                     float floatVal = Float.parseFloat(value);
-                    fields.put(key, floatVal);
+                    return fields.put(key, floatVal);
                 } catch (Exception exc) {
-                    fields.put(key, value);
+                    return fields.put(key, value);
                 }
             }
         }
-        fields.put(key, value);
+        return fields.put(key, value);
     }
 
     /**
