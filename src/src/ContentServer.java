@@ -29,19 +29,26 @@ public class ContentServer extends SocketClient {
         this.fileName = fileName;
     }
 
-    private String getBody() throws IOException {
-        Parser parser = new Parser();
-        parser.parseFile(Path.of(fileName));
-        return parser.toString();
-    }
-
     public static ContentServer from_args(String[] argv) throws IOException {
         ContentServerParser parser = new ContentServerParser();
         ContentServerInformation info = parser.parse(argv);
         Socket clientSocket = new Socket(info.hostname, info.port);
-        BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        BufferedReader in =
+                new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-        return new ContentServer(clientSocket, out, in, info.hostname, info.port, info.fileName);
+        return new ContentServer(clientSocket, out, in, info.hostname, info.port,
+                info.fileName);
+    }
+
+    public static void main(String[] argv) throws IOException {
+        ContentServer client = ContentServer.from_args(argv);
+        client.run();
+    }
+
+    private String getBody() throws IOException {
+        Parser parser = new Parser();
+        parser.parseFile(Path.of(fileName));
+        return parser.toString();
     }
 
     public HTTPRequest formatPUTMessage() throws IOException {
@@ -70,36 +77,26 @@ public class ContentServer extends SocketClient {
         return request;
     }
 
-    public void run() {
-        try {
-            HTTPRequest requestGET = formatGETMessage();
-            System.out.println(requestGET.toString());
-            send(requestGET);
-            while (true) {
-                String response = receive();
-                if (response != null) { // Comm is still maintained
-                    System.out.println(response);
-                    HTTPResponse httpResponse = HTTPResponse.fromMessage(response);
-                    // ACK for GET message
-                    if (httpResponse.body == null) {
-                        HTTPRequest requestPUT = formatPUTMessage();
-                        System.out.println(requestPUT.toString());
-                        send(requestPUT);
-                    } else { // Close connection when PUT ACK is received
-                        break;
-                    }
-                }else
-                    break; // Break if serverside connection is terminated
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } finally {
-            close();
+    public void run() throws IOException {
+        HTTPRequest requestGET = formatGETMessage();
+        System.out.println(requestGET.toString());
+        send(requestGET);
+        while (true) {
+            String response = receive();
+            if (response != null) { // Comm is still maintained
+                System.out.println(response);
+                HTTPResponse httpResponse = HTTPResponse.fromMessage(response);
+                // ACK for GET message
+                if (httpResponse.body == null) {
+                    HTTPRequest requestPUT = formatPUTMessage();
+                    System.out.println(requestPUT.toString());
+                    send(requestPUT);
+                } else { // Close connection when PUT ACK is received
+                    break;
+                }
+            } else
+                break; // Break if serverside connection is terminated
         }
-    }
-
-    public static void main(String[] argv) throws IOException {
-        ContentServer client = ContentServer.from_args(argv);
-        client.run();
+        close();
     }
 }
