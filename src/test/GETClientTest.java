@@ -89,12 +89,12 @@ class GETClientNonExistIDTest extends GETClientTest {
 
     @Test
     void testFormatMessage() {
-        assertEquals(request, client.formatMessage().toString());
+        assertEquals(request, client.formatGETMessage().toString());
     }
 
     @Test
     void testSend() {
-        HTTPRequest request = client.formatMessage();
+        HTTPRequest request = client.formatGETMessage();
         client.send(request);
         verify(out, times(1)).println(anyString());
     }
@@ -141,7 +141,7 @@ class GETClientWithoutIDTest extends GETClientTest {
                 Host: localhost:4567\r
                 Accept: application/json\r
                 \r
-                """, client.formatMessage().toString());
+                """, client.formatGETMessage().toString());
     }
 }
 

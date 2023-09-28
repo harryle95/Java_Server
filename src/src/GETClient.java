@@ -40,7 +40,7 @@ public class GETClient extends SocketClient {
     }
 
 
-    public HTTPRequest formatMessage() {
+    public HTTPRequest formatGETMessage() {
         HTTPRequest request = new HTTPRequest("1.1").setMethod("GET");
 
         if (stationID == null)
@@ -58,7 +58,7 @@ public class GETClient extends SocketClient {
 
     public void run() {
         try {
-            HTTPRequest request = formatMessage();
+            HTTPRequest request = formatGETMessage();
             send(request);
             while (true) {
                 String response = receive();
