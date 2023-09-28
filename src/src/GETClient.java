@@ -3,18 +3,37 @@ import utility.domain.GETClientParser;
 import utility.domain.GETServerInformation;
 import utility.http.HTTPRequest;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.net.UnknownHostException;
 
 public class GETClient extends SocketClient {
     private String stationID;
 
-    public GETClient(String[] argv) {
-        super();
+    public GETClient(
+            Socket clientSocket,
+            PrintWriter out,
+            BufferedReader in,
+            String hostname,
+            int port,
+            String stationID) throws IOException {
+        super(clientSocket, out, in);
+        this.hostname = hostname;
+        this.port = port;
+        this.stationID = stationID;
+    }
+
+
+    public static GETClient from_args(String[] argv) throws IOException {
         GETClientParser parser = new GETClientParser();
         GETServerInformation info = parser.parse(argv);
-        setHostname(info.hostname);
-        setPort(info.port);
-        setStationID(info.stationID);
+        Socket clientSocket = new Socket(info.hostname, info.port);
+        BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+        return new GETClient(clientSocket, out, in, info.hostname, info.port, info.stationID);
     }
 
     public String getStationID() {
@@ -43,7 +62,6 @@ public class GETClient extends SocketClient {
 
     public void run() {
         try {
-            connect();
             HTTPRequest request = formatMessage();
             send(request);
             while (true) {
@@ -59,8 +77,8 @@ public class GETClient extends SocketClient {
         }
     }
 
-    public static void main(String[] argv) {
-        GETClient client = new GETClient(argv);
+    public static void main(String[] argv) throws IOException {
+        GETClient client = GETClient.from_args(argv);
         client.run();
     }
 }

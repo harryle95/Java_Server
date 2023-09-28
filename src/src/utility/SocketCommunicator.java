@@ -20,16 +20,17 @@ public abstract class SocketCommunicator {
     protected LamportClock clock;
     String type;
 
-    public SocketCommunicator() {
-        clock = new LamportClock();
-    }
 
-
-    public SocketCommunicator(Socket clientSocket, LamportClock clock, String type) throws IOException {
+    public SocketCommunicator(
+            Socket clientSocket,
+            LamportClock clock,
+            PrintWriter out,
+            BufferedReader in,
+            String type) throws IOException {
         this.clientSocket = clientSocket;
         this.clock = clock;
-        out = new PrintWriter(clientSocket.getOutputStream(), true);
-        in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        this.in = in;
+        this.out = out;
         this.type = type;
     }
 

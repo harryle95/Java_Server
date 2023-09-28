@@ -7,7 +7,9 @@ import utility.SocketCommunicator;
 import utility.http.HTTPRequest;
 import utility.http.HTTPResponse;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.concurrent.*;
 
@@ -23,11 +25,13 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
 
     public ConnectionHandler(
             Socket socket,
+            BufferedReader in,
+            PrintWriter out,
             LamportClock clock,
             ConcurrentMap<String, String> database,
             ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<String, String>>> archive,
             ExecutorService requestHandlerPool, LinkedBlockingQueue<FileMetadata> updateQueue) throws IOException {
-        super(socket, clock, "server");
+        super(socket, clock, out, in, "server");
         this.database = database;
         this.archive = archive;
         this.requestHandlerPool = requestHandlerPool;
