@@ -60,13 +60,13 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
                 HTTPRequest request = HTTPRequest.fromMessage(message);
                 // Save metadata to remove archive's entry 30s after disconnection
                 if (request.method.equals("PUT"))
-                    metadataPUT = new FileMetadata(clientSocket.getRemoteSocketAddress().toString(),
+                    metadataPUT = new FileMetadata(clientSocket.getInetAddress().toString(),
                             request.getURIEndPoint(), String.valueOf(clock.getTimeStamp()));
 
                 // Submit request to a task queue and get the Future as a CompletionService
                 Callable<HTTPResponse> task = new RequestHandler(
                         request,
-                        clientSocket.getRemoteSocketAddress().toString(),
+                        clientSocket.getInetAddress().toString(),
                         clock.getTimeStamp(),
                         updateQueue,
                         database,
