@@ -14,11 +14,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public abstract class SimulateServerErrorTest {
     ServerSocket serverSocket;
-
     Socket receivingSocket;
-
     BufferedReader in;
-
     @BeforeEach
     void setUp() throws IOException {
         serverSocket = new ServerSocket(4567);
@@ -35,7 +32,6 @@ public abstract class SimulateServerErrorTest {
             }
         }).start();
     }
-
     @AfterEach
     void shutDown() {
         try {

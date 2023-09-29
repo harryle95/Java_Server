@@ -1,3 +1,5 @@
+![Work Flow](https://github.com/harryle/Java_Server/actions/workflows/github-actions.yaml/badge.svg)
+
 ## How to run the program
 
 ## Design
