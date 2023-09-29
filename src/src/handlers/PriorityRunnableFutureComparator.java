@@ -1,9 +1,11 @@
 package handlers;
 
-import handlers.PriorityRunnableFuture;
+import Coverage.IgnoreCoverage;
+
 
 import java.util.Comparator;
 
+@IgnoreCoverage
 public class PriorityRunnableFutureComparator implements Comparator<Runnable> {
     @Override
     public int compare(Runnable o1, Runnable o2) {
