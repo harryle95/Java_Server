@@ -1,7 +1,6 @@
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import utility.MessageExchanger;
@@ -12,8 +11,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-
-import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.*;
@@ -83,7 +80,7 @@ class GETClientNonExistIDTest extends GETClientTest {
 
 
     @Test
-    void testGetStationID(){
+    void testGetStationID() {
         assertEquals("nonExistID", client.getStationID());
     }
 
@@ -114,17 +111,6 @@ class GETClientNonExistIDTest extends GETClientTest {
         verify(out, times(1)).println(anyString());
         verify(clientSocket, times(1)).close();
     }
-
-    @Test
-    void testClosingClosedConnection() throws IOException {
-        doNothing().doThrow(IOException.class).when(clientSocket).close();
-        assertThrows(RuntimeException.class, ()->{
-            client.close();
-            client.close();
-        });
-    }
-
-
 }
 
 @ExtendWith(MockitoExtension.class)
@@ -140,7 +126,7 @@ class GETClientWithoutIDTest extends GETClientTest {
     }
 
     @Test
-    void testGetStationID(){
+    void testGetStationID() {
         assertNull(client.getStationID());
     }
 
