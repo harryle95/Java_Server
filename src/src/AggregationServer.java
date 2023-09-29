@@ -1,9 +1,9 @@
 import handlers.ConnectionHandler;
+import handlers.PriorityRunnableFuture;
+import handlers.PriorityRunnableFutureComparator;
 import handlers.RequestHandler;
 import utility.FileMetadata;
 import utility.LamportClock;
-import handlers.PriorityRunnableFuture;
-import handlers.PriorityRunnableFutureComparator;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,26 +17,27 @@ import java.util.concurrent.*;
 //TODO - Add HeartBeat/HealthCheck Runnable
 public class AggregationServer {
     private final ConcurrentMap<String, String> database;
-    private final ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<String, String>>> archive;
+    private final ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<String,
+            String>>> archive;
 
-    private final LinkedBlockingQueue<FileMetadata> updateQueue; // Queue referencing archive data based on order of update
+    private final LinkedBlockingQueue<FileMetadata> updateQueue; // Queue referencing
+    // archive data based on order of update
 
-    private final ExecutorService connectionHandlerPool; // Thread pool to accept incoming requests
+    private final ExecutorService connectionHandlerPool; // Thread pool to accept
+    // incoming requests
 
     private final ExecutorService requestHandlerPool; // Thread pool to handle request
-
-
-    private final ScheduledExecutorService schedulePool; // Thread pool to execute period background tasks
-
+    private final ScheduledExecutorService schedulePool; // Thread pool to execute
     private final int POOLSIZE = 10;
-
-
-    private ServerSocket serverSocket;
+    // period background tasks
     private final LamportClock clock;
+    public boolean isUp;
+    private ServerSocket serverSocket;
 
 
     public AggregationServer(String[] argv) throws IOException {
         int port = getPort(argv);
+        isUp = true;
         database = new ConcurrentHashMap<>();
         archive = new ConcurrentHashMap<>();
         connectionHandlerPool = Executors.newCachedThreadPool();
@@ -51,31 +52,13 @@ public class AggregationServer {
         ) {
             protected <T> RunnableFuture<T> newTaskFor(Callable<T> callable) {
                 RunnableFuture<T> newTaskFor = super.newTaskFor(callable);
-                return new PriorityRunnableFuture<>(newTaskFor, ((RequestHandler) callable).getPriority());
+                return new PriorityRunnableFuture<>(newTaskFor,
+                        ((RequestHandler) callable).getPriority());
             }
         };
 
         clock = new LamportClock();
         run(port);
-    }
-
-    public void run(int port) throws IOException {
-        serverSocket = new ServerSocket(port);
-        serverSocket.setReuseAddress(true);
-        System.out.println("Server listening at port: " + port);
-    }
-
-    public void start() throws IOException {
-        while (true) {
-            Socket clientSocket = serverSocket.accept();
-
-            // Connection Pool listen for incoming requests
-            connectionHandlerPool.execute(new ConnectionHandler(
-                    clientSocket,
-                    new BufferedReader(new InputStreamReader(clientSocket.getInputStream())),
-                    new PrintWriter(clientSocket.getOutputStream(), true),
-                    clock, database, archive, requestHandlerPool, updateQueue, schedulePool));
-        }
     }
 
     public static int getPort(String[] args) {
@@ -96,8 +79,29 @@ public class AggregationServer {
         server.close();
     }
 
+    public void run(int port) throws IOException {
+        serverSocket = new ServerSocket(port);
+        serverSocket.setReuseAddress(true);
+        System.out.println("Server listening at port: " + port);
+    }
+
+    public void start() throws IOException {
+        while (true) {
+            Socket clientSocket = serverSocket.accept();
+
+            // Connection Pool listen for incoming requests
+            connectionHandlerPool.execute(new ConnectionHandler(
+                    clientSocket,
+                    new BufferedReader(new InputStreamReader(clientSocket.getInputStream())),
+                    new PrintWriter(clientSocket.getOutputStream(), true),
+                    clock, database, archive, requestHandlerPool, updateQueue,
+                    schedulePool));
+        }
+    }
+
     public void close() throws IOException {
         serverSocket.close();
+        isUp = false;
     }
 }
 
