@@ -1,4 +1,4 @@
-![Work Flow](https://github.com/harryle/Java_Server/actions/workflows/github-actions.yaml/badge.svg)
+![CI](https://github.com/haryle/Java_Server/workflows/CI/badge.svg)
 
 ## How to run the program
 
