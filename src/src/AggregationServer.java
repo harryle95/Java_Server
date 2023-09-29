@@ -27,7 +27,12 @@ public class AggregationServer {
     private final ScheduledExecutorService schedulePool; // Thread pool to execute
     // incoming requests
     private final int POOLSIZE = 20;
-    private final int FRESHCOUNT = 20;
+
+    public void setFRESHCOUNT(int FRESHCOUNT) {
+        this.FRESHCOUNT = FRESHCOUNT;
+    }
+
+    private int FRESHCOUNT = 20;
 
     public void setWAITTIME(int WAITTIME) {
         this.WAITTIME = WAITTIME;

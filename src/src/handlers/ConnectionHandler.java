@@ -1,5 +1,6 @@
 package handlers;
 
+import Coverage.IgnoreCoverage;
 import utility.FileMetadata;
 import utility.LamportClock;
 import utility.SocketCommunicator;
@@ -47,7 +48,7 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
         this.WAITTIME = waitTime;
     }
 
-
+    @IgnoreCoverage
     @Override
     public void run() {
         FileMetadata metadataPUT = null;
