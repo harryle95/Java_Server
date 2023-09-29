@@ -480,7 +480,7 @@ class MultipleSerialPUTTest extends IntegrationTest {
     }
 
     @Test
-    void testPUTRequestAreSerialisedCorrectlyFourTasks() throws InterruptedException, IOException {
+    void testPUTRequestAreSerialisedCorrectlyFourTasks() throws IOException {
         ContentServer.main(("127.0.0.1:4567 " + fileNames.get(0)).split(" "));
         ContentServer.main(("127.0.0.1:4567 " + fileNames.get(1)).split(" "));
         ContentServer.main(("127.0.0.1:4567 " + fileNames.get(2)).split(" "));
