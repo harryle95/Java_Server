@@ -1,5 +1,5 @@
-id: 5000
-name: Adelaide
+id: 5023
+name: Seaton
 state:SA
 time_zone:CST
 lat:-34.9

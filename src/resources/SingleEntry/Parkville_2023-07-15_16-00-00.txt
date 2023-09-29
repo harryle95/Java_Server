@@ -1,6 +1,6 @@
-id: 5000
-name: Adelaide
-state:SA
+id: 3052
+name:Parkville
+state: Vic
 time_zone:CST
 lat:-34.9
 lon:138.6

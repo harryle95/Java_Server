@@ -1,16 +1,16 @@
-id: A0
-name:Adelaide (West Terrace /  ngayirdapira)
+id: 5022
+name: HenleyBeach
 state: SA
 time_zone:CST
 lat:-34.9
 lon:138.6
-local_date_time:15/05:30pm
-local_date_time_full:20230715173000
+local_date_time:15/04:30pm
+local_date_time_full:20230715163000
 air_temp:14.3
 apparent_t:10.5
 cloud:Partly cloudy
 dewpt:6.7
-press:1023.7
+press:1023.9
 rel_hum:60
 wind_dir:S
 wind_spd_kmh:15

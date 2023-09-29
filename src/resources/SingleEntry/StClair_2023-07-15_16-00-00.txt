@@ -1,11 +1,11 @@
-id: M0
-name:Melbourne
-state: Vic
+id: 5011
+name: StClair
+state:SA
 time_zone:CST
 lat:-34.9
 lon:138.6
-local_date_time:15/05:30pm
-local_date_time_full:20230715173000
+local_date_time:15/04:00pm
+local_date_time_full:20230715160000
 air_temp:13.3
 apparent_t:9.5
 cloud:Partly cloudy

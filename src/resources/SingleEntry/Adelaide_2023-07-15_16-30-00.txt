@@ -1,5 +1,5 @@
-id: A0
-name:Adelaide (West Terrace /  ngayirdapira)
+id: 5000
+name:Adelaide
 state: SA
 time_zone:CST
 lat:-34.9
