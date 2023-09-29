@@ -16,7 +16,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.*;
 
 public abstract class IntegrationTest {
-    private final int MAXRETRIES = 5;
+    private final int MAX_RETRY = 5;
     AggregationServer server;
     private int retries = 0;
 
@@ -29,7 +29,7 @@ public abstract class IntegrationTest {
             new Thread(task).start();
         } catch (IOException e) {
             retries += 1;
-            if (retries < MAXRETRIES) {
+            if (retries < MAX_RETRY) {
                 Thread.sleep(500);
                 setUp();
             } else {
