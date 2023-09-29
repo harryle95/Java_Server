@@ -1,3 +1,5 @@
+![CI](https://github.com/haryle/Java_Server/workflows/CI/badge.svg)
+
 ## How to run the program
 
 ## Design

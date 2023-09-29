@@ -1,4 +1,4 @@
-name: AggregationServer
+name: CI
 
 on: [ push ]
 
