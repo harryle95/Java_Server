@@ -1,4 +1,4 @@
-![CI](https://github.com/haryle/Java_Server/workflows/CI/badge.svg)
+![CI](https://github.com/haryle/Java_Server/workflows/CI/badge.svg?event=push)
 
 ## How to run the program
 
