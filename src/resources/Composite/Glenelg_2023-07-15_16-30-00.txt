@@ -1,0 +1,51 @@
+id: 5045
+name: Glenelg
+state: SA
+time_zone:CST
+lat:-34.9
+lon:138.6
+local_date_time:15/04:30pm
+local_date_time_full:20230715163000
+air_temp:14.3
+apparent_t:10.5
+cloud:Partly cloudy
+dewpt:6.7
+press:1023.9
+rel_hum:60
+wind_dir:S
+wind_spd_kmh:15
+wind_spd_kt:8
+id: 5022
+name: HenleyBeach
+state:SA
+time_zone:CST
+lat:-34.9
+lon:138.6
+local_date_time:15/04:00pm
+local_date_time_full:20230715160000
+air_temp:13.3
+apparent_t:9.5
+cloud:Partly cloudy
+dewpt:5.7
+press:1023.9
+rel_hum:60
+wind_dir:S
+wind_spd_kmh:15
+wind_spd_kt:8
+id: 5022
+name: HenleyBeach
+state: SA
+time_zone:CST
+lat:-34.9
+lon:138.6
+local_date_time:15/04:30pm
+local_date_time_full:20230715163000
+air_temp:14.3
+apparent_t:10.5
+cloud:Partly cloudy
+dewpt:6.7
+press:1023.9
+rel_hum:60
+wind_dir:S
+wind_spd_kmh:15
+wind_spd_kt:8
