@@ -4,13 +4,14 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 class IntegrationTest {
     AggregationServer server;
     private int retries = 0;
 
-    private int MAXRETRIES = 5;
+    private final int MAXRETRIES = 5;
 
     @BeforeEach
     void setUp() throws IOException, InterruptedException {
@@ -203,6 +204,48 @@ class IntegrationTest {
                 }""", client.receivedMessages.get(0));
     }
 
+    @Test
+    void testServerShutDownClientThrowingException(){
+        assertThrows(IOException.class, ()->{
+            server.close();
+            GETClient.main("127.0.0.1:4567 A0".split(" "));
+        });
+    }
+
+    @Test
+    void testClientErrorNotShuttingDownServer(){
+        assertThrows(RuntimeException.class, ()-> GETClient.main("127.0.0.1:4567 A0 A1".split(" ")));
+        assertTrue(server.isUp);
+    }
+
+    @Test
+    void testClientPrematureClosingDoesNotShutDownServer() throws IOException {
+        GETClient client = GETClient.from_args("127.0.0.1:4567 A0".split(" "));
+        client.close();
+        assertTrue(server.isUp);
+    }
+
+    @Test
+    void testClientCloseDoesCloseSocket() throws IOException {
+            GETClient client = GETClient.from_args("127.0.0.1:4567 A0".split(" "));
+            client.close();
+            assertFalse(client.isUp);
+    }
+
+    @Test
+    void testServerCloseDoesCloseSocket() throws IOException {
+        server.close();
+        assertFalse(server.isUp);
+    }
+
+    @Test
+    void testServerHandleMultipleGETClients() throws IOException {
+        GETClient.main("127.0.0.1:4567 A0".split(" "));
+        GETClient.main("127.0.0.1:4567 A1".split(" "));
+        assertTrue(server.isUp);
+    }
+
+
     @AfterEach
     void shutDown() {
         try {
@@ -225,7 +268,7 @@ class IntegrationTest {
             try {
                 server.start();
             } catch (IOException e) {
-                System.out.println("Server is closed");
+                System.out.println("Server is already closed");
             }
         }
     }
