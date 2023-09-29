@@ -12,16 +12,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class SocketCommunicator {
+    public List<String> sentMessages;
+    public List<String> receivedMessages;
     protected Socket clientSocket;
+    protected LamportClock clock;
     PrintWriter out;
     BufferedReader in;
-
-    protected LamportClock clock;
     String type;
 
-    public List<String> sentMessages;
-
-    public List<String> receivedMessages;
+    public boolean isUp;
 
     public SocketCommunicator(
             Socket clientSocket,
@@ -29,6 +28,7 @@ public abstract class SocketCommunicator {
             PrintWriter out,
             BufferedReader in,
             String type) {
+        isUp = true;
         this.clientSocket = clientSocket;
         this.clock = clock;
         this.in = in;
@@ -42,13 +42,17 @@ public abstract class SocketCommunicator {
         String encodedResponse = in.readLine();
         if (encodedResponse != null) {
             if (type.equals("client")) {
-                HTTPResponse response = HTTPResponse.fromMessage(MessageExchanger.decode(encodedResponse));
-                clock.advanceAndSetTimeStamp(Integer.parseInt(response.header.get("Lamport-Clock")));
+                HTTPResponse response =
+                        HTTPResponse.fromMessage(MessageExchanger.decode(encodedResponse));
+                clock.advanceAndSetTimeStamp(Integer.parseInt(response.header.get(
+                        "Lamport-Clock")));
                 receivedMessages.add(response.toString());
                 return response.toString();
             } else {
-                HTTPRequest request = HTTPRequest.fromMessage(MessageExchanger.decode(encodedResponse));
-                clock.advanceAndSetTimeStamp(Integer.parseInt(request.header.get("Lamport-Clock")));
+                HTTPRequest request =
+                        HTTPRequest.fromMessage(MessageExchanger.decode(encodedResponse));
+                clock.advanceAndSetTimeStamp(Integer.parseInt(request.header.get(
+                        "Lamport-Clock")));
                 receivedMessages.add(request.toString());
                 return request.toString();
             }
@@ -65,12 +69,9 @@ public abstract class SocketCommunicator {
     }
 
 
-    public void close() {
-        try {
-            clientSocket.close();
-            System.out.println("Closing connection");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public void close() throws IOException {
+        clientSocket.close();
+        System.out.println("Closing client-side connection");
+        isUp = false;
     }
 }
