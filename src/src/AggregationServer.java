@@ -1,3 +1,4 @@
+import Coverage.IgnoreCoverage;
 import handlers.ConnectionHandler;
 import handlers.PriorityRunnableFuture;
 import handlers.PriorityRunnableFutureComparator;
@@ -16,33 +17,20 @@ import java.util.concurrent.*;
 //TODO - Add BackUpRunnable
 //TODO - Add HeartBeat/HealthCheck Runnable
 public class AggregationServer {
-    public ConcurrentMap<String, String> getDatabase() {
-        return database;
-    }
-
     private final ConcurrentMap<String, String> database;
-
-    public ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<String, String>>> getArchive() {
-        return archive;
-    }
-
     private final ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<String,
             String>>> archive;
-
     private final LinkedBlockingQueue<FileMetadata> updateQueue; // Queue referencing
-    // archive data based on order of update
-
     private final ExecutorService connectionHandlerPool; // Thread pool to accept
-    // incoming requests
-
     private final ExecutorService requestHandlerPool; // Thread pool to handle request
+    // archive data based on order of update
     private final ScheduledExecutorService schedulePool; // Thread pool to execute
+    // incoming requests
     private final int POOLSIZE = 10;
     // period background tasks
     private final LamportClock clock;
     public boolean isUp;
     private ServerSocket serverSocket;
-
 
     public AggregationServer(String[] argv) throws IOException {
         int port = getPort(argv);
@@ -82,10 +70,20 @@ public class AggregationServer {
         return port;
     }
 
+    @IgnoreCoverage
     public static void main(String[] args) throws IOException {
         AggregationServer server = new AggregationServer(args);
         server.start();
         server.close();
+    }
+
+    public ConcurrentMap<String, String> getDatabase() {
+        return database;
+    }
+
+    public ConcurrentMap<String,
+            ConcurrentMap<String, ConcurrentMap<String, String>>> getArchive() {
+        return archive;
     }
 
     public void run(int port) throws IOException {
