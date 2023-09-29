@@ -1,6 +1,7 @@
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import utility.http.HTTPRequest;
 import utility.http.HTTPResponse;
 import utility.json.Parser;
 
@@ -144,7 +145,8 @@ class OneGetOneContentTest extends IntegrationTest {
 
     @Test
     void testClientErrorNotShuttingDownServer() {
-        assertThrows(RuntimeException.class, () -> GETClient.main(("127.0.0.1:4567 A0 " +
+        assertThrows(RuntimeException.class, () -> GETClient.main(("127.0.0.1:4567 A0" +
+                " " +
                 "A1").split(" ")));
         assertTrue(server.isUp);
     }
@@ -288,26 +290,41 @@ class OneGetOneContentTest extends IntegrationTest {
     @Test
     void testContentServerPUTRequestBeingIdempotent() throws IOException {
         // Run once check results identical
-        ContentServer.main(("127.0.0.1:4567 src/resources/SingleEntry/Adelaide_2023-07" +
+        ContentServer.main(("127.0.0.1:4567 src/resources/SingleEntry/Adelaide_2023" +
+                "-07" +
                 "-15_16-00-00.txt").split(" "));
-        GETClient firstClient = GETClient.from_args("127.0.0.1:4567 A0".split(" "));
+        GETClient firstClient = GETClient.from_args("127.0.0.1:4567 5000".split(" "));
         firstClient.run();
 
-        HTTPResponse firstResponse = HTTPResponse.fromMessage(firstClient.receivedMessages.get(0)) ;
+        HTTPResponse firstResponse =
+                HTTPResponse.fromMessage(firstClient.receivedMessages.get(0));
         // Run again, check results are the same
-        ContentServer.main(("127.0.0.1:4567 src/resources/SingleEntry/Adelaide_2023-07" +
+        ContentServer.main(("127.0.0.1:4567 src/resources/SingleEntry/Adelaide_2023" +
+                "-07" +
                 "-15_16-00-00.txt").split(" "));
-        GETClient secondClient = GETClient.from_args("127.0.0.1:4567 A0".split(" "));
+        GETClient secondClient = GETClient.from_args("127.0.0.1:4567 5000".split(" "));
         secondClient.run();
-        HTTPResponse secondResponse = HTTPResponse.fromMessage(secondClient.receivedMessages.get(0)) ;
+        HTTPResponse secondResponse =
+                HTTPResponse.fromMessage(secondClient.receivedMessages.get(0));
         assertEquals(firstResponse.body, secondResponse.body);
     }
+
+    @Test
+    void testClientSendingPOSTRequestReceiveBadRequest() throws IOException{
+        GETClient client = GETClient.from_args("127.0.0.1:4567".split(" "));
+        HTTPRequest request = new HTTPRequest("1.1").setMethod("POST").setURI("/Adelaide");
+        client.send(request);
+        HTTPResponse response = HTTPResponse.fromMessage(client.receive());
+        assertEquals("400", response.statusCode);
+    }
+
 }
 
 class MultipleSerialPUTTest extends IntegrationTest {
     Map<String, String> fixtureMap;
 
     List<String> fileNames;
+
     @BeforeEach
     void createFixture() throws IOException {
         fixtureMap = new HashMap<>();
@@ -316,9 +333,28 @@ class MultipleSerialPUTTest extends IntegrationTest {
         String prefixPath = "src/resources/SingleEntry/";
         fileNames.add(prefixPath + "Adelaide_2023-07-15_16-00-00.txt");
         fileNames.add(prefixPath + "Adelaide_2023-07-15_16-30-00.txt");
+        fileNames.add(prefixPath + "Glenelg_2023-07-15_16-00-00.txt");
+        fileNames.add(prefixPath + "Glenelg_2023-07-15_16-30-00.txt");
+        fileNames.add(prefixPath + "HenleyBeach_2023-07-15_16-00-00.txt");
+        fileNames.add(prefixPath + "HenleyBeach_2023-07-15_16-30-00.txt");
+        fileNames.add(prefixPath + "Kilkenny_2023-07-15_16-00-00.txt");
+        fileNames.add(prefixPath + "Kilkenny_2023-07-15_16-30-00.txt");
         fileNames.add(prefixPath + "Melbourne_2023-07-15_16-00-00.txt");
         fileNames.add(prefixPath + "Melbourne_2023-07-15_16-30-00.txt");
-        for (String path: fileNames){
+        fileNames.add(prefixPath + "NorthAdelaide_2023-07-15_16-00-00.txt");
+        fileNames.add(prefixPath + "NorthAdelaide_2023-07-15_16-30-00.txt");
+        fileNames.add(prefixPath + "Parkville_2023-07-15_16-00-00.txt");
+        fileNames.add(prefixPath + "Parkville_2023-07-15_16-30-00.txt");
+        fileNames.add(prefixPath + "Pennington_2023-07-15_16-00-00.txt");
+        fileNames.add(prefixPath + "Pennington_2023-07-15_16-30-00.txt");
+        fileNames.add(prefixPath + "Seaton_2023-07-15_16-00-00.txt");
+        fileNames.add(prefixPath + "Seaton_2023-07-15_16-30-00.txt");
+        fileNames.add(prefixPath + "Semaphore_2023-07-15_16-00-00.txt");
+        fileNames.add(prefixPath + "Semaphore_2023-07-15_16-30-00.txt");
+        fileNames.add(prefixPath + "StClair_2023-07-15_16-00-00.txt");
+        fileNames.add(prefixPath + "StClair_2023-07-15_16-30-00.txt");
+
+        for (String path : fileNames) {
             parser.parseFile(Path.of(path));
             fixtureMap.put(path, parser.toString());
         }
@@ -327,27 +363,59 @@ class MultipleSerialPUTTest extends IntegrationTest {
     @Test
     void testSinglePUTRequestsUpdateDatabase() throws IOException {
         ContentServer.main(("127.0.0.1:4567 " + fileNames.get(0)).split(" "));
-        assertEquals("{\n" + server.getDatabase().get("A0") + "\n}", fixtureMap.get(fileNames.get(0)));
+        assertEquals("{\n" + server.getDatabase().get("5000") + "\n}",
+                fixtureMap.get(fileNames.get(0)));
     }
 
     @Test
     void testMultiplePUTRequestsUpdateDatabase() throws IOException {
         ContentServer.main(("127.0.0.1:4567 " + fileNames.get(0)).split(" "));
-        assertEquals("{\n" + server.getDatabase().get("A0") + "\n}", fixtureMap.get(fileNames.get(0)));
+        assertEquals("{\n" + server.getDatabase().get("5000") + "\n}",
+                fixtureMap.get(fileNames.get(0)));
         ContentServer.main(("127.0.0.1:4567 " + fileNames.get(1)).split(" "));
-        assertEquals("{\n" + server.getDatabase().get("A0") + "\n}", fixtureMap.get(fileNames.get(1)));
+        assertEquals("{\n" + server.getDatabase().get("5000") + "\n}",
+                fixtureMap.get(fileNames.get(1)));
     }
 
     @Test
     void testInterleavedGETPUTRequests() throws IOException {
         ContentServer.main(("127.0.0.1:4567 " + fileNames.get(0)).split(" "));
-        GETClient firstClient = GETClient.from_args("127.0.0.1:4567 A0".split(" "));
+        GETClient firstClient = GETClient.from_args("127.0.0.1:4567 5000".split(" "));
         firstClient.run();
         assertEquals(HTTPResponse.fromMessage(firstClient.receivedMessages.get(0)).body, fixtureMap.get(fileNames.get(0)));
         ContentServer.main(("127.0.0.1:4567 " + fileNames.get(1)).split(" "));
-        GETClient secondClient = GETClient.from_args("127.0.0.1:4567 A0".split(" "));
+        GETClient secondClient = GETClient.from_args("127.0.0.1:4567 5000".split(" "));
         secondClient.run();
         assertEquals(HTTPResponse.fromMessage(secondClient.receivedMessages.get(0)).body, fixtureMap.get(fileNames.get(1)));
+    }
+
+    @Test
+    void testIndependentPUTDoNotInterfereOneAnother() throws IOException {
+        ContentServer.main(("127.0.0.1:4567 " + fileNames.get(0)).split(" "));
+        ContentServer.main(("127.0.0.1:4567 " + fileNames.get(2)).split(" "));
+        assertEquals("{\n" + server.getDatabase().get("5000") + "\n}",
+                fixtureMap.get(fileNames.get(0)));
+        assertEquals("{\n" + server.getDatabase().get("5045") + "\n}",
+                fixtureMap.get(fileNames.get(2)));
+    }
+
+    @Test
+    void testOldestEventsEjectedFromArchive() throws IOException {
+        for (String file: fileNames){
+            ContentServer.main(("127.0.0.1:4567 " + file).split(" "));
+        }
+        assertFalse(server.getArchive().get("/127.0.0.1").containsKey(fileNames.get(0)));
+        assertFalse(server.getArchive().get("/127.0.0.1").containsKey(fileNames.get(1)));
+        assertTrue(server.getArchive().get("/127.0.0.1").containsKey(fileNames.get(20)));
+    }
+
+    @Test
+    void testFilesRemovedAfterConnectionClosed() throws IOException, InterruptedException {
+        server.setWAITTIME(1);
+        ContentServer.main(("127.0.0.1:4567 " + fileNames.get(0)).split(" "));
+        assertTrue(server.getArchive().get("/127.0.0.1").containsKey(fileNames.get(0)));
+        Thread.sleep(3000);
+        assertFalse(server.getArchive().get("/127.0.0.1").containsKey(fileNames.get(0)));
     }
 
 
