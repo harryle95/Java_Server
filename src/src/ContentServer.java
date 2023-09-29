@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.SocketException;
 import java.nio.file.Path;
 
 public class ContentServer extends SocketClient {
@@ -22,7 +23,7 @@ public class ContentServer extends SocketClient {
             BufferedReader in,
             String hostname,
             int port,
-            String fileName) {
+            String fileName) throws SocketException {
         super(clientSocket, out, in);
         this.hostname = hostname;
         this.port = port;

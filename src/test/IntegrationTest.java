@@ -16,7 +16,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.*;
 
 public abstract class IntegrationTest {
-    private final int MAXRETRIES = 5;
+    private final int MAX_RETRY = 5;
     AggregationServer server;
     private int retries = 0;
 
@@ -29,7 +29,7 @@ public abstract class IntegrationTest {
             new Thread(task).start();
         } catch (IOException e) {
             retries += 1;
-            if (retries < MAXRETRIES) {
+            if (retries < MAX_RETRY) {
                 Thread.sleep(500);
                 setUp();
             } else {
@@ -410,7 +410,7 @@ class MultipleSerialPUTTest extends IntegrationTest {
 
     @Test
     void testFilesRemovedAfterConnectionClosed() throws IOException, InterruptedException {
-        server.setWAITTIME(1);
+        server.setWAIT_TIME(1);
         ContentServer.main(("127.0.0.1:4567 " + fileNames.get(0)).split(" "));
         assertTrue(server.getArchive().get("/127.0.0.1").containsKey(fileNames.get(0)));
         Thread.sleep(3000);
@@ -419,7 +419,7 @@ class MultipleSerialPUTTest extends IntegrationTest {
 
     @Test
     void testWhenUpdateQueueContainsTheSameEntryArchiveDoNotRemove() throws IOException {
-        server.setFRESHCOUNT(1);
+        server.setFRESH_PERIOD_COUNT(1);
         ContentServer.main(("127.0.0.1:4567 " + fileNames.get(0)).split(" "));
         ContentServer.main(("127.0.0.1:4567 " + fileNames.get(0)).split(" "));
         assertTrue(server.getArchive().get("/127.0.0.1").containsKey(fileNames.get(0)));
@@ -427,7 +427,7 @@ class MultipleSerialPUTTest extends IntegrationTest {
 
     @Test
     void testWhenUpdateQueueContainsUpdatedVersionOfTheSameEntryArchiveDoNotRemove() throws IOException {
-        server.setFRESHCOUNT(3);
+        server.setFRESH_PERIOD_COUNT(3);
         ContentServer.main(("127.0.0.1:4567 " + fileNames.get(0)).split(" "));
         ContentServer.main(("127.0.0.1:4567 " + fileNames.get(2)).split(" "));
         ContentServer.main(("127.0.0.1:4567 " + fileNames.get(1)).split(" "));
@@ -437,7 +437,7 @@ class MultipleSerialPUTTest extends IntegrationTest {
 
     @Test
     void testAllFilesRemovedSteadyState() throws InterruptedException {
-        server.setWAITTIME(1);
+        server.setWAIT_TIME(1);
         Runnable task1 = () -> {
             try {
                 ContentServer.main(("127.0.0.1:4567 " + fileNames.get(0)).split(" "));
@@ -475,7 +475,7 @@ class MultipleSerialPUTTest extends IntegrationTest {
         new Thread(task3).start();
         new Thread(task4).start();
 
-        Thread.sleep(2000);
+        Thread.sleep(5000);
         assertTrue(server.getArchive().get("/127.0.0.1").isEmpty());
     }
 

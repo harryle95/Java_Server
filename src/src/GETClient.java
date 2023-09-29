@@ -8,11 +8,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.SocketException;
 
 public class GETClient extends SocketClient {
-    public String getStationID() {
-        return stationID;
-    }
 
     private final String stationID;
 
@@ -22,7 +20,7 @@ public class GETClient extends SocketClient {
             BufferedReader in,
             String hostname,
             int port,
-            String stationID) {
+            String stationID) throws SocketException {
         super(clientSocket, out, in);
         this.hostname = hostname;
         this.port = port;

@@ -25,8 +25,8 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
 
     private final ScheduledExecutorService schedulePool;
 
-    private final int FRESHCOUNT;
-    private final int WAITTIME;
+    private final int FRESH_COUNT;
+    private final int WAIT_TIME;
 
     public ConnectionHandler(
             Socket socket,
@@ -44,8 +44,8 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
         this.requestHandlerPool = requestHandlerPool;
         this.updateQueue = updateQueue;
         this.schedulePool = schedulePool;
-        FRESHCOUNT = freshcount;
-        this.WAITTIME = waitTime;
+        FRESH_COUNT = freshcount;
+        this.WAIT_TIME = waitTime;
     }
 
     @IgnoreCoverage
@@ -73,7 +73,7 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
                         clock.getTimeStamp(),
                         updateQueue,
                         database,
-                        FRESHCOUNT,
+                        FRESH_COUNT,
                         archive
                 );
                 Future<HTTPResponse> future = requestHandlerPool.submit(task);
@@ -84,7 +84,7 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
             // Submit a cleanup task if request is PUT
             if (metadataPUT != null) {
                 Runnable removeArchiveData = new RemoveEntryRunnable(metadataPUT, archive);
-                schedulePool.schedule(removeArchiveData, WAITTIME, TimeUnit.SECONDS);
+                schedulePool.schedule(removeArchiveData, WAIT_TIME, TimeUnit.SECONDS);
             }
             System.out.println("Closing server-side connection");
         } catch (IOException | ExecutionException | InterruptedException e) {

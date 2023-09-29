@@ -26,19 +26,19 @@ public class AggregationServer {
     // archive data based on order of update
     private final ScheduledExecutorService schedulePool; // Thread pool to execute
     // incoming requests
-    private final int POOLSIZE = 20;
+    private final int POOL_SIZE = 20;
 
-    public void setFRESHCOUNT(int FRESHCOUNT) {
-        this.FRESHCOUNT = FRESHCOUNT;
+    public void setFRESH_PERIOD_COUNT(int FRESH_PERIOD_COUNT) {
+        this.FRESH_PERIOD_COUNT = FRESH_PERIOD_COUNT;
     }
 
-    private int FRESHCOUNT = 20;
+    private int FRESH_PERIOD_COUNT = 20;
 
-    public void setWAITTIME(int WAITTIME) {
-        this.WAITTIME = WAITTIME;
+    public void setWAIT_TIME(int WAIT_TIME) {
+        this.WAIT_TIME = WAIT_TIME;
     }
 
-    private int WAITTIME = 30;
+    private int WAIT_TIME = 30;
     // period background tasks
     private final LamportClock clock;
     public boolean isUp;
@@ -50,7 +50,7 @@ public class AggregationServer {
         database = new ConcurrentHashMap<>();
         archive = new ConcurrentHashMap<>();
         connectionHandlerPool = Executors.newCachedThreadPool();
-        schedulePool = Executors.newScheduledThreadPool(POOLSIZE);
+        schedulePool = Executors.newScheduledThreadPool(POOL_SIZE);
         updateQueue = new LinkedBlockingQueue<>();
         requestHandlerPool = new ThreadPoolExecutor(
                 1,
@@ -113,7 +113,7 @@ public class AggregationServer {
                     new BufferedReader(new InputStreamReader(clientSocket.getInputStream())),
                     new PrintWriter(clientSocket.getOutputStream(), true),
                     clock, database, archive, requestHandlerPool, updateQueue,
-                    schedulePool, FRESHCOUNT, WAITTIME));
+                    schedulePool, FRESH_PERIOD_COUNT, WAIT_TIME));
         }
     }
 
