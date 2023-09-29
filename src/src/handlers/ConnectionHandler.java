@@ -83,7 +83,7 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
                 Runnable removeArchiveData = new RemoveEntryRunnable(metadataPUT, archive);
                 schedulePool.schedule(removeArchiveData, waitTime, TimeUnit.SECONDS);
             }
-            System.out.println("Closing socket");
+            System.out.println("Closing server-side connection");
         } catch (IOException | ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         }
