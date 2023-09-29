@@ -26,7 +26,14 @@ public class AggregationServer {
     // archive data based on order of update
     private final ScheduledExecutorService schedulePool; // Thread pool to execute
     // incoming requests
-    private final int POOLSIZE = 10;
+    private final int POOLSIZE = 20;
+    private final int FRESHCOUNT = 20;
+
+    public void setWAITTIME(int WAITTIME) {
+        this.WAITTIME = WAITTIME;
+    }
+
+    private int WAITTIME = 30;
     // period background tasks
     private final LamportClock clock;
     public boolean isUp;
@@ -95,14 +102,13 @@ public class AggregationServer {
     public void start() throws IOException {
         while (true) {
             Socket clientSocket = serverSocket.accept();
-
             // Connection Pool listen for incoming requests
             connectionHandlerPool.execute(new ConnectionHandler(
                     clientSocket,
                     new BufferedReader(new InputStreamReader(clientSocket.getInputStream())),
                     new PrintWriter(clientSocket.getOutputStream(), true),
                     clock, database, archive, requestHandlerPool, updateQueue,
-                    schedulePool));
+                    schedulePool, FRESHCOUNT, WAITTIME));
         }
     }
 

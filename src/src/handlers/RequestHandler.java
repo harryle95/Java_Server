@@ -20,7 +20,7 @@ public class RequestHandler implements Callable<HTTPResponse> {
     private final String remoteIP;
     private final ConcurrentMap<String, String> database;
 
-    private final int freshUpdateCount;
+    private final int FRESHCOUNT;
     private final ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<String, String>>> archive;
 
     public RequestHandler(
@@ -36,7 +36,7 @@ public class RequestHandler implements Callable<HTTPResponse> {
         this.priority = priority;
         this.updateQueue = updateQueue;
         this.database = database;
-        this.freshUpdateCount = freshUpdateCount;
+        this.FRESHCOUNT = freshUpdateCount;
         this.archive = archive;
         this.remoteIP = remoteIP;
     }
@@ -115,7 +115,7 @@ public class RequestHandler implements Callable<HTTPResponse> {
         String fileName = request.getURIEndPoint();
         // Add new metadata to updateQueue
         updateQueue.put(new FileMetadata(remoteIP, fileName, String.valueOf(priority)));
-        while (updateQueue.size() > freshUpdateCount) {
+        while (updateQueue.size() > FRESHCOUNT) {
             // Remove stale updates from the beginning of the queue
             FileMetadata popData = updateQueue.poll();
             if (popData != null) {
