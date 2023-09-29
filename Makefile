@@ -4,13 +4,8 @@ CLASSDIR = src/src
 UTILDIR = src/src/utility
 TESTDIR  = src/test/
 JUNITJAR = junit-platform-console-standalone-1.9.3.jar
-MOCKITOJAR = mockito-core-5.5.0.jar
-BYTEBUDDYJAR = byte-buddy-1.14.8.jar
-BYTEBUDDYAGENTJAR = byte-buddy-agent-1.14.8.jar
-MOCKITOJUNIT = mockito-junit-jupiter-5.5.0.jar
-OBJENESIS = objenesis-3.3.jar
 JARDIR = jar_files
-JARFILES = $(JARDIR)/$(JUNITJAR):$(JARDIR)/$(MOCKITOJAR):$(JARDIR)/$(BYTEBUDDYJAR):$(JARDIR)/$(BYTEBUDDYAGENTJAR):$(JARDIR)/$(MOCKITOJUNIT):$(JARDIR)/$(OBJENESIS)
+JARFILES = $(JARDIR)/$(JUNITJAR)
 
 
 
