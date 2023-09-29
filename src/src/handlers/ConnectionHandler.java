@@ -24,8 +24,8 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
 
     private final ScheduledExecutorService schedulePool;
 
-    private final int freshUpdateCount = 20;
-    private final int waitTime = 30;
+    private final int FRESHCOUNT;
+    private final int WAITTIME;
 
     public ConnectionHandler(
             Socket socket,
@@ -36,13 +36,15 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
             ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<String, String>>> archive,
             ExecutorService requestHandlerPool,
             LinkedBlockingQueue<FileMetadata> updateQueue,
-            ScheduledExecutorService schedulePool) {
+            ScheduledExecutorService schedulePool, int freshcount, int waitTime) {
         super(socket, clock, out, in, "server");
         this.database = database;
         this.archive = archive;
         this.requestHandlerPool = requestHandlerPool;
         this.updateQueue = updateQueue;
         this.schedulePool = schedulePool;
+        FRESHCOUNT = freshcount;
+        this.WAITTIME = waitTime;
     }
 
 
@@ -70,7 +72,7 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
                         clock.getTimeStamp(),
                         updateQueue,
                         database,
-                        freshUpdateCount,
+                        FRESHCOUNT,
                         archive
                 );
                 Future<HTTPResponse> future = requestHandlerPool.submit(task);
@@ -81,7 +83,7 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
             // Submit a cleanup task if request is PUT
             if (metadataPUT != null) {
                 Runnable removeArchiveData = new RemoveEntryRunnable(metadataPUT, archive);
-                schedulePool.schedule(removeArchiveData, waitTime, TimeUnit.SECONDS);
+                schedulePool.schedule(removeArchiveData, WAITTIME, TimeUnit.SECONDS);
             }
             System.out.println("Closing server-side connection");
         } catch (IOException | ExecutionException | InterruptedException e) {

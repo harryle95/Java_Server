@@ -1,3 +1,4 @@
+import Coverage.IgnoreCoverage;
 import handlers.ConnectionHandler;
 import handlers.PriorityRunnableFuture;
 import handlers.PriorityRunnableFutureComparator;
@@ -19,21 +20,24 @@ public class AggregationServer {
     private final ConcurrentMap<String, String> database;
     private final ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<String,
             String>>> archive;
-
     private final LinkedBlockingQueue<FileMetadata> updateQueue; // Queue referencing
-    // archive data based on order of update
-
     private final ExecutorService connectionHandlerPool; // Thread pool to accept
-    // incoming requests
-
     private final ExecutorService requestHandlerPool; // Thread pool to handle request
+    // archive data based on order of update
     private final ScheduledExecutorService schedulePool; // Thread pool to execute
-    private final int POOLSIZE = 10;
+    // incoming requests
+    private final int POOLSIZE = 20;
+    private final int FRESHCOUNT = 20;
+
+    public void setWAITTIME(int WAITTIME) {
+        this.WAITTIME = WAITTIME;
+    }
+
+    private int WAITTIME = 30;
     // period background tasks
     private final LamportClock clock;
     public boolean isUp;
     private ServerSocket serverSocket;
-
 
     public AggregationServer(String[] argv) throws IOException {
         int port = getPort(argv);
@@ -73,10 +77,20 @@ public class AggregationServer {
         return port;
     }
 
+    @IgnoreCoverage
     public static void main(String[] args) throws IOException {
         AggregationServer server = new AggregationServer(args);
         server.start();
         server.close();
+    }
+
+    public ConcurrentMap<String, String> getDatabase() {
+        return database;
+    }
+
+    public ConcurrentMap<String,
+            ConcurrentMap<String, ConcurrentMap<String, String>>> getArchive() {
+        return archive;
     }
 
     public void run(int port) throws IOException {
@@ -88,14 +102,13 @@ public class AggregationServer {
     public void start() throws IOException {
         while (true) {
             Socket clientSocket = serverSocket.accept();
-
             // Connection Pool listen for incoming requests
             connectionHandlerPool.execute(new ConnectionHandler(
                     clientSocket,
                     new BufferedReader(new InputStreamReader(clientSocket.getInputStream())),
                     new PrintWriter(clientSocket.getOutputStream(), true),
                     clock, database, archive, requestHandlerPool, updateQueue,
-                    schedulePool));
+                    schedulePool, FRESHCOUNT, WAITTIME));
         }
     }
 

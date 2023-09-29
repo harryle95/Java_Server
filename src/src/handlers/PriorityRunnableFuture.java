@@ -1,9 +1,12 @@
 package handlers;
+import Coverage.IgnoreCoverage;
+
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+@IgnoreCoverage
 public class PriorityRunnableFuture<T> implements RunnableFuture<T> {
     private final RunnableFuture<T> src;
     private final int priority;
