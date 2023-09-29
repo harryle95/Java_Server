@@ -16,7 +16,16 @@ import java.util.concurrent.*;
 //TODO - Add BackUpRunnable
 //TODO - Add HeartBeat/HealthCheck Runnable
 public class AggregationServer {
+    public ConcurrentMap<String, String> getDatabase() {
+        return database;
+    }
+
     private final ConcurrentMap<String, String> database;
+
+    public ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<String, String>>> getArchive() {
+        return archive;
+    }
+
     private final ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<String,
             String>>> archive;
 
