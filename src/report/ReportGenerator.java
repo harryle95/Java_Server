@@ -10,9 +10,7 @@ public class ReportGenerator {
     public static void main(String[] argv) throws IOException {
         File htmlPath = new File("report"); // path to the output HTML directory
         String title = "Code Coverage Report"; // title of the HTML document
-        String charset = null; // charset of the HTML document, or null to use the
-        // default one on the current machine
-        File icPath = new File("report.ic"); // path to the report.ic
+        File icPath = new File("src/report/report.ic"); // path to the report.ic
         List<File> reports = Collections.singletonList(icPath);
         List<File> outputRoots = Collections.singletonList(new File("out/production" +
                 "/Java_Server/"));
@@ -20,7 +18,8 @@ public class ReportGenerator {
                 "/Java_Server"));
         Filters filters = Filters.EMPTY;
 
-        ReportApi.htmlReport(htmlPath, title, charset, reports, outputRoots,
+        ReportApi.htmlReport(htmlPath, title, null, reports, outputRoots,
                 sourceRoots, filters);
 
     }
+}
