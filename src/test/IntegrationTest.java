@@ -52,7 +52,6 @@ public abstract class IntegrationTest {
     static class StartServer implements Runnable {
         AggregationServer server;
 
-
         public StartServer(AggregationServer server) {
             this.server = server;
         }
@@ -413,7 +412,7 @@ class MultipleSerialPUTTest extends IntegrationTest {
         server.setWAIT_TIME(1);
         ContentServer.main(("127.0.0.1:4567 " + fileNames.get(0)).split(" "));
         assertTrue(server.getArchive().get("/127.0.0.1").containsKey(fileNames.get(0)));
-        Thread.sleep(3000);
+        Thread.sleep(300);
         assertFalse(server.getArchive().get("/127.0.0.1").containsKey(fileNames.get(0)));
     }
 
@@ -475,7 +474,7 @@ class MultipleSerialPUTTest extends IntegrationTest {
         new Thread(task3).start();
         new Thread(task4).start();
 
-        Thread.sleep(5000);
+        Thread.sleep(500);
         assertTrue(server.getArchive().get("/127.0.0.1").isEmpty());
     }
 
