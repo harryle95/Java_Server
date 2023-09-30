@@ -23,7 +23,11 @@ compile_test:
 	rm sources.txt
 
 run_test: compile_src compile_test
-	java -jar $(JARDIR)/$(JUNITJAR) -cp $(JARFILES):$(TESTOUTDIR):$(OUTDIR) --scan-classpath
+	java -javaagent:jar_files/intellij-coverage-agent-1.0.737.jar=config.args -jar $(JARDIR)/$(JUNITJAR) -cp $(JARFILES):$(TESTOUTDIR):$(OUTDIR) --scan-classpath
+
+build_report:
+	javac -d out/report/ -cp out/report/:jar_files/intellij-coverage-reporter-1.0.737.jar:jar_files/freemarker-2.3.31.jar:jar_files/coverage-report-1.0.22.jar:jar_files/intellij-coverage-agent-1.0.737.jar src/report/ReportGenerator.java
+	java -cp out/report/:jar_files/intellij-coverage-reporter-1.0.737.jar:jar_files/freemarker-2.3.31.jar:jar_files/coverage-report-1.0.22.jar:jar_files/intellij-coverage-agent-1.0.737.jar ReportGenerator
 
 agg_server: compile_src
 	java -cp $(OUTDIR) AggregationServer 4567
@@ -37,4 +41,5 @@ content_server: compile_src
 .PHONY = clean
 clean:
 	rm -rf out
+	rm -rf report
 	clear
