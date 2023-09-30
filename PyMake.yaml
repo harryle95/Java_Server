@@ -45,6 +45,7 @@ build_report:
 
 clean:
   cmd:
-    - rmdir /S /Q out
-    - rmdir /S /Q report
+#    - rmdir /S /Q out
+#    - rmdir /S /Q report
+    - rmdir /S /Q src\backups\
     - cls

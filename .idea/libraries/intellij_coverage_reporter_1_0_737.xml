@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="intellij-coverage-reporter-1.0.737">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/jar_files/intellij-coverage-reporter-1.0.737.jar!/" />
+      <root url="jar://$PROJECT_DIR$/jar_files/coverage-report-1.0.22.jar!/" />
+      <root url="jar://$PROJECT_DIR$/jar_files/freemarker-2.3.31.jar!/" />
+      <root url="jar://$PROJECT_DIR$/jar_files/intellij-coverage-agent-1.0.737.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
