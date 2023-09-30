@@ -71,7 +71,7 @@ public abstract class SocketCommunicator {
 
     public void close() throws IOException {
         clientSocket.close();
-        System.out.println("Closing client-side connection");
+//        System.out.println("Closing client-side connection");
         isUp = false;
     }
 }

@@ -1,19 +1,19 @@
 # TO RUN CMD ON WINDOWS
-compile_utility:
+compile:
   var:
     basic:
       OUTDIR: out/production/Java_Server
       CLASSDIR: src/src
-      UTILDIR: .\src\src\utility\
+      SRCDIR: .\src\src\
   cmd:
-    - cd $(UTILDIR) && dir /s /B *.java > ..\..\..\sources.txt
+    - cd $(SRCDIR) && dir /s /B *.java > ..\..\sources.txt
     - javac -d $(OUTDIR) -cp $(CLASSDIR) @sources.txt
     - del sources.txt
 
 compile_test:
   var:
     basic:
-      OUTDIR: out/test
+      OUTDIR: out/test/Java_Server
       CLASSDIR: src/src
       TESTDIR: src/test
       JUNITJAR: jar_files/
@@ -26,9 +26,25 @@ run_test:
   var:
     basic:
       JUNITJAR: jar_files/junit-platform-console-standalone-1.9.3.jar
-      TESTPATH: out/test
+      TESTPATH: out/test/Java_Server
       CLASSPATH: out/production/Java_Server
   cmd:
-    - pymake run compile_utility
+    - pymake run compile
     - pymake run compile_test
-    - java -jar $(JUNITJAR) -cp $(TESTPATH) -cp (CLASSPATH) --scan-classpath
+    - java -javaagent:jar_files/intellij-coverage-agent-1.0.737.jar=config.args -jar $(JUNITJAR) -cp $(TESTPATH) -cp (CLASSPATH) --scan-classpath
+
+build_report:
+  var:
+    basic:
+      OUTDIR: out/report/
+      CLASSPATH: out/report/;jar_files/intellij-coverage-reporter-1.0.737.jar;jar_files/freemarker-2.3.31.jar;jar_files/coverage-report-1.0.22.jar;jar_files/intellij-coverage-agent-1.0.737.jar
+  cmd:
+    - javac -d $(OUTDIR) -cp $(CLASSPATH) src/report/ReportGenerator.java
+    - java -cp $(CLASSPATH) ReportGenerator
+
+
+clean:
+  cmd:
+    - rmdir /S /Q out
+    - rmdir /S /Q report
+    - cls

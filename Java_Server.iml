@@ -10,5 +10,6 @@
     <orderEntry type="jdk" jdkName="openjdk-20" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="junit-platform-console-standalone-1.9.3" level="project" />
+    <orderEntry type="library" exported="" name="intellij-coverage-reporter-1.0.737" level="project" />
   </component>
 </module>
