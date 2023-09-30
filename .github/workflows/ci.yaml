@@ -31,6 +31,8 @@ jobs:
           echo "branch=$branch" >> $GITHUB_OUTPUT
           echo "class=$class" >> $GITHUB_OUTPUT
           echo "line=$line" >> $GITHUB_OUTPUT
+      - name: Create badges folder
+        run: mkdir -p .github/badges/
       - name: Generate method coverage badge
         uses: emibcn/badge-action@v1
         id: method_badge
