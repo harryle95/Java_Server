@@ -5,6 +5,7 @@ import handlers.PriorityRunnableFutureComparator;
 import handlers.RequestHandler;
 import utility.FileMetadata;
 import utility.LamportClock;
+import utility.ServerSnapshot;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,7 +15,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.*;
 
-//TODO - Add BackUpRunnable
 //TODO - Add HeartBeat/HealthCheck Runnable
 public class AggregationServer {
     private final ConcurrentMap<String, String> database;
@@ -25,30 +25,28 @@ public class AggregationServer {
     private final ExecutorService requestHandlerPool; // Thread pool to handle request
     // archive data based on order of update
     private final ScheduledExecutorService schedulePool; // Thread pool to execute
+
+    public ServerSnapshot getServerSnapshot() {
+        return serverSnapshot;
+    }
+
+    private final ServerSnapshot serverSnapshot; // Server snapshot service
+
     // incoming requests
     private final int POOL_SIZE = 20;
-
-    public void setFRESH_PERIOD_COUNT(int FRESH_PERIOD_COUNT) {
-        this.FRESH_PERIOD_COUNT = FRESH_PERIOD_COUNT;
-    }
-
-    private int FRESH_PERIOD_COUNT = 20;
-
-    public void setWAIT_TIME(int WAIT_TIME) {
-        this.WAIT_TIME = WAIT_TIME;
-    }
-
-    private int WAIT_TIME = 30000;
-    // period background tasks
     private final LamportClock clock;
     public boolean isUp;
+    private int FRESH_PERIOD_COUNT = 20; // how many updates until the current is no longer fresh
+    private int WAIT_TIME = 30000; // how long to wait until the cleanup task - 30 seconds
+    private int BACKUP_TIME = 15; // time between auto backup - default 15 minutes
     private ServerSocket serverSocket;
 
-    public AggregationServer(String[] argv) throws IOException {
+    public AggregationServer(String[] argv) throws IOException, ClassNotFoundException {
         int port = getPort(argv);
         isUp = true;
-        database = new ConcurrentHashMap<>();
-        archive = new ConcurrentHashMap<>();
+        serverSnapshot = new ServerSnapshot();
+        database = serverSnapshot.getDatabase();
+        archive = serverSnapshot.getArchive();
         connectionHandlerPool = Executors.newCachedThreadPool();
         schedulePool = Executors.newScheduledThreadPool(POOL_SIZE);
         updateQueue = new LinkedBlockingQueue<>();
@@ -83,10 +81,22 @@ public class AggregationServer {
     }
 
     @IgnoreCoverage
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
         AggregationServer server = new AggregationServer(args);
         server.start();
         server.close();
+    }
+
+    public void setFRESH_PERIOD_COUNT(int FRESH_PERIOD_COUNT) {
+        this.FRESH_PERIOD_COUNT = FRESH_PERIOD_COUNT;
+    }
+
+    public void setWAIT_TIME(int WAIT_TIME) {
+        this.WAIT_TIME = WAIT_TIME;
+    }
+
+    public void setBACKUP_TIME(int BACKUP_TIME) {
+        this.BACKUP_TIME = BACKUP_TIME;
     }
 
     public ConcurrentMap<String, String> getDatabase() {
@@ -105,6 +115,14 @@ public class AggregationServer {
     }
 
     public void start() throws IOException {
+        // Backup Pool Create Backup Snapshot
+        schedulePool.scheduleWithFixedDelay(()->{
+            try {
+                serverSnapshot.createSnapShot();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }, BACKUP_TIME, BACKUP_TIME, TimeUnit.MINUTES);
         while (true) {
             Socket clientSocket = serverSocket.accept();
             // Connection Pool listen for incoming requests
