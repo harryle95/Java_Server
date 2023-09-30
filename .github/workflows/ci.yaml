@@ -72,7 +72,7 @@ jobs:
         id: class_badge
         with:
           label: 'Class Coverage'
-          status: ${{ steps.coverage.outputs.branch }}
+          status: ${{ steps.coverage.outputs.class }}
           path: .github/badges/class-coverage.svg
           color: ${{
             steps.coverage.outputs.coverage > 90 && 'green'              ||
