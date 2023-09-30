@@ -1,19 +1,19 @@
 # TO RUN CMD ON WINDOWS
-compile_utility:
+compile:
   var:
     basic:
       OUTDIR: out/production/Java_Server
       CLASSDIR: src/src
-      UTILDIR: .\src\src\utility\
+      SRCDIR: .\src\src\
   cmd:
-    - cd $(UTILDIR) && dir /s /B *.java > ..\..\..\sources.txt
+    - cd $(SRCDIR) && dir /s /B *.java > ..\..\sources.txt
     - javac -d $(OUTDIR) -cp $(CLASSDIR) @sources.txt
     - del sources.txt
 
 compile_test:
   var:
     basic:
-      OUTDIR: out/test
+      OUTDIR: out/test/Java_Server
       CLASSDIR: src/src
       TESTDIR: src/test
       JUNITJAR: jar_files/
@@ -26,9 +26,15 @@ run_test:
   var:
     basic:
       JUNITJAR: jar_files/junit-platform-console-standalone-1.9.3.jar
-      TESTPATH: out/test
+      TESTPATH: out/test/Java_Server
       CLASSPATH: out/production/Java_Server
   cmd:
-    - pymake run compile_utility
+    - pymake run compile
     - pymake run compile_test
-    - java -jar $(JUNITJAR) -cp $(TESTPATH) -cp (CLASSPATH) --scan-classpath
+    - java -javaagent:jar_files/intellij-coverage-agent-1.0.737.jar=config.args -jar $(JUNITJAR) -cp $(TESTPATH) -cp (CLASSPATH) --scan-classpath
+
+clean:
+  cmd:
+    - del report.ic
+    - rmdir /S /Q out
+    - rmdir /S /Q report
