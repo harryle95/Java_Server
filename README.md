@@ -1,5 +1,8 @@
 [![CI](https://github.com/haryle/Java_Server/actions/workflows/ci.yaml/badge.svg)](https://github.com/haryle/Java_Server/actions/workflows/ci.yaml)
-![Coverage](.github/badges/test-coverage.svg)
+![BranchCoverage](.github/badges/branch-coverage.svg)
+![ClassCoverage](.github/badges/class-coverage.svg)
+![LineCoverage](.github/badges/line-coverage.svg)
+![MethodCoverage](.github/badges/method-coverage.svg)
 
 ## How to run the program
 
