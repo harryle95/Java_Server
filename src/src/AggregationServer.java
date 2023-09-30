@@ -38,7 +38,7 @@ public class AggregationServer {
     public boolean isUp;
     private int FRESH_PERIOD_COUNT = 20; // how many updates until the current is no longer fresh
     private int WAIT_TIME = 30000; // how long to wait until the cleanup task - 30 seconds
-    private int BACKUP_TIME = 15; // time between auto backup - default 15 minutes
+    private final int BACKUP_TIME = 15; // time between auto backup - default 15 minutes
     private ServerSocket serverSocket;
 
     public AggregationServer(String[] argv) throws IOException, ClassNotFoundException {
