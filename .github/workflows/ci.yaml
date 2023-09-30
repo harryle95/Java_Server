@@ -90,7 +90,7 @@ jobs:
         with:
           label: 'Line Coverage'
           status: ${{ steps.coverage.outputs.line }}
-          path: .github/badges/class-coverage.svg
+          path: .github/badges/line-coverage.svg
           color: ${{
             steps.coverage.outputs.coverage > 90 && 'green'              ||
             steps.coverage.outputs.coverage > 80 && 'yellow,green'       ||
