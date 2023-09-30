@@ -44,7 +44,7 @@ public abstract class IntegrationTest {
         try {
             server.close();
         } catch (IOException e) {
-            System.out.println("Already Closed");
+//            System.out.println("Already Closed");
         }
     }
 
@@ -62,7 +62,7 @@ public abstract class IntegrationTest {
             try {
                 server.start();
             } catch (IOException e) {
-                System.out.println("Server is already closed");
+//                System.out.println("Server is already closed");
             }
         }
     }

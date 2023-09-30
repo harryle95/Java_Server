@@ -60,7 +60,7 @@ public class GETClient extends SocketClient {
         while (true) {
             String response = receive();
             if (response != null)
-                System.out.println(response);
+//                System.out.println(response);
             break;
         }
         close();

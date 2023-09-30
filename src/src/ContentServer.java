@@ -80,17 +80,17 @@ public class ContentServer extends SocketClient {
 
     public void run() throws IOException {
         HTTPRequest requestGET = formatGETMessage();
-        System.out.println(requestGET.toString());
+//        System.out.println(requestGET.toString());
         send(requestGET);
         while (true) {
             String response = receive();
             if (response != null) { // Comm is still maintained
-                System.out.println(response);
+//                System.out.println(response);
                 HTTPResponse httpResponse = HTTPResponse.fromMessage(response);
                 // ACK for GET message
                 if (httpResponse.body == null) {
                     HTTPRequest requestPUT = formatPUTMessage();
-                    System.out.println(requestPUT.toString());
+//                    System.out.println(requestPUT.toString());
                     send(requestPUT);
                 } else { // Close connection when PUT ACK is received
                     break;

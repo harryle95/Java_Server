@@ -101,7 +101,7 @@ public class AggregationServer {
     public void run(int port) throws IOException {
         serverSocket = new ServerSocket(port);
         serverSocket.setReuseAddress(true);
-        System.out.println("Server listening at port: " + port);
+//        System.out.println("Server listening at port: " + port);
     }
 
     public void start() throws IOException {
