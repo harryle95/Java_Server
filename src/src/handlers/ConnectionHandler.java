@@ -84,7 +84,7 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
             // Submit a cleanup task if request is PUT
             if (metadataPUT != null) {
                 Runnable removeArchiveData = new RemoveEntryRunnable(metadataPUT, archive);
-                schedulePool.schedule(removeArchiveData, WAIT_TIME, TimeUnit.SECONDS);
+                schedulePool.schedule(removeArchiveData, WAIT_TIME, TimeUnit.MILLISECONDS);
             }
 //            System.out.println("Closing server-side connection");
         } catch (IOException | ExecutionException | InterruptedException e) {

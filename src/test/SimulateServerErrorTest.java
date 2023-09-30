@@ -27,7 +27,7 @@ public abstract class SimulateServerErrorTest {
                     while (in.readLine() != null) {
                     }
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+//                    System.out.println("Connection is Closed");
                 }
             }
         }).start();

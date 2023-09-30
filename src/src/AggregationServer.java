@@ -38,7 +38,7 @@ public class AggregationServer {
         this.WAIT_TIME = WAIT_TIME;
     }
 
-    private int WAIT_TIME = 30;
+    private int WAIT_TIME = 30000;
     // period background tasks
     private final LamportClock clock;
     public boolean isUp;
