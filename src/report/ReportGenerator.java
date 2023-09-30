@@ -12,6 +12,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class ReportGenerator {
     public static File xmlPath = new File("report/coverage.xml");
@@ -23,7 +24,12 @@ public class ReportGenerator {
     public static List<File> sourceRoots = Collections.singletonList(new File("src" +
             "/src" +
             "/Java_Server"));
-    public static Filters filters = Filters.EMPTY;
+    public static Filters filters = new Filters(
+            Collections.<Pattern>emptyList(),
+            Collections.<Pattern>emptyList(),
+            Collections.<Pattern>singletonList(
+                    Pattern.compile("Coverage.IgnoreCoverage")));
+    ;
     public static Document doc;
     public static NodeList nList;
 
@@ -50,7 +56,7 @@ public class ReportGenerator {
                 "missed").getNodeValue());
         float covered = Float.parseFloat(attributes.getNamedItem(
                 "covered").getNodeValue());
-        float coverage = (covered / (covered + missed))*100;
+        float coverage = (covered / (covered + missed)) * 100;
         String type = attributes.getNamedItem("type").getNodeValue();
         FileWriter writer = new FileWriter("report/" + type);
         writer.write(String.format("%.2f", coverage));
