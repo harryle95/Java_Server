@@ -33,6 +33,16 @@ run_test:
     - pymake run compile_test
     - java -javaagent:jar_files/intellij-coverage-agent-1.0.737.jar=config.args -jar $(JUNITJAR) -cp $(TESTPATH) -cp (CLASSPATH) --scan-classpath
 
+build_report:
+  var:
+    basic:
+      OUTDIR: out/report/
+      CLASSPATH: out/report/;jar_files/intellij-coverage-reporter-1.0.737.jar;jar_files/freemarker-2.3.31.jar;jar_files/coverage-report-1.0.22.jar;jar_files/intellij-coverage-agent-1.0.737.jar
+  cmd:
+    - javac -d $(OUTDIR) -cp $(CLASSPATH) src/report/ReportGenerator.java
+    - java -cp $(CLASSPATH) ReportGenerator
+
+
 clean:
   cmd:
     - del report.ic
