@@ -1,5 +1,5 @@
 [![CI](https://github.com/haryle/Java_Server/actions/workflows/ci.yaml/badge.svg)](https://github.com/haryle/Java_Server/actions/workflows/ci.yaml)
-![Coverage](.github/badges/jacoco.svg)
+![Coverage](.github/badges/test-coverage.svg)
 
 ## How to run the program
 
