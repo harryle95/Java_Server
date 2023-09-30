@@ -46,8 +46,8 @@ jobs:
           git config --local user.name "GitHub Action"
           git add .github/badges/test-coverage.svg
           git commit -m "Add/Update badge"
-          - name: Push badge commit
-            uses: ad-m/github-push-action@master
-            with:
-              github_token: ${{ secrets.GITHUB_TOKEN }}
-              branch: ${{ steps.extract_branch.outputs.branch }}
+      - name: Push badge commit
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ steps.extract_branch.outputs.branch }}
