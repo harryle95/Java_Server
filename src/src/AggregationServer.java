@@ -95,9 +95,6 @@ public class AggregationServer {
         this.WAIT_TIME = WAIT_TIME;
     }
 
-    public void setBACKUP_TIME(int BACKUP_TIME) {
-        this.BACKUP_TIME = BACKUP_TIME;
-    }
 
     public ConcurrentMap<String, String> getDatabase() {
         return database;
