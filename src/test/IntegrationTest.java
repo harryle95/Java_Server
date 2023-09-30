@@ -1,10 +1,12 @@
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import utility.ServerSnapshot;
 import utility.http.HTTPRequest;
 import utility.http.HTTPResponse;
 import utility.json.Parser;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -35,6 +37,8 @@ public abstract class IntegrationTest {
             } else {
                 throw new RuntimeException(e);
             }
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -310,7 +314,8 @@ class OneGetOneContentTest extends IntegrationTest {
     @Test
     void testClientSendingPOSTRequestReceiveBadRequest() throws IOException {
         GETClient client = GETClient.from_args("127.0.0.1:4567".split(" "));
-        HTTPRequest request = new HTTPRequest("1.1").setMethod("POST").setURI("/Adelaide");
+        HTTPRequest request = new HTTPRequest("1.1").setMethod("POST").setURI(
+                "/Adelaide");
         client.send(request);
         HTTPResponse response = HTTPResponse.fromMessage(client.receive());
         assertEquals("400", response.statusCode);
@@ -408,7 +413,8 @@ class MultipleSerialPUTTest extends IntegrationTest {
     }
 
     @Test
-    void testFilesRemovedAfterConnectionClosed() throws IOException, InterruptedException {
+    void testFilesRemovedAfterConnectionClosed() throws IOException,
+            InterruptedException {
         server.setWAIT_TIME(1);
         ContentServer.main(("127.0.0.1:4567 " + fileNames.get(0)).split(" "));
         assertTrue(server.getArchive().get("/127.0.0.1").containsKey(fileNames.get(0)));
@@ -498,11 +504,12 @@ class MultipleSerialPUTTest extends IntegrationTest {
 
 }
 
-class MultiplePUTWithCompositeDataTest extends IntegrationTest{
+class MultiplePUTWithCompositeDataTest extends IntegrationTest {
     Map<String, String> fixtureMap;
 
     List<String> fileNames;
     List<String> fileNamesComposite;
+
     @BeforeEach
     void createFixture() throws IOException {
         fixtureMap = new HashMap<>();
@@ -527,8 +534,10 @@ class MultiplePUTWithCompositeDataTest extends IntegrationTest{
         parser.parseFile(Path.of(fileNames.get(3)));
         fixtureMap.put("5045_Old", parser.toString());
 
-        fileNamesComposite.add("src/resources/Composite/Adelaide_2023-07-15_16-30-00.txt");
-        fileNamesComposite.add("src/resources/Composite/Glenelg_2023-07-15_16-30-00.txt");
+        fileNamesComposite.add("src/resources/Composite/Adelaide_2023-07-15_16-30-00" +
+                ".txt");
+        fileNamesComposite.add("src/resources/Composite/Glenelg_2023-07-15_16-30-00" +
+                ".txt");
     }
 
     @Test
@@ -555,4 +564,22 @@ class MultiplePUTWithCompositeDataTest extends IntegrationTest{
         assertEquals(HTTPResponse.fromMessage(secondClient.receivedMessages.get(0)).body, fixtureMap.get("5045_New"));
     }
 
+    @Test
+    void testCorrectBackUpCreated() throws IOException, ClassNotFoundException, InterruptedException {
+        ContentServer.main(("127.0.0.1:4567 " + fileNamesComposite.get(0)).split(" "));
+        server.getServerSnapshot().createSnapShot();
+        ServerSnapshot newSnapShot = new ServerSnapshot();
+        assertEquals(server.getDatabase(), newSnapShot.getDatabase());
+        assertEquals(server.getArchive(), newSnapShot.getArchive());
+
+        // Restart the server
+        shutDown();
+        setUp();
+        assertEquals(server.getDatabase(), newSnapShot.getDatabase());
+        assertEquals(server.getArchive(), newSnapShot.getArchive());
+
+        // Remove files
+        new File("src/backups/archive").delete();
+        new File("src/backups/database").delete();
+    }
 }
