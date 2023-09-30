@@ -22,7 +22,7 @@ jobs:
         id: Extract_branch
       - name: Extract coverage result
         id: coverage
-        run: echo "##[set-output name=coverage;]$(echo report/METHOD)"
+        run: echo "##[set-output name=coverage;]$(cat report/METHOD)"
       - name: Generate coverage badge
         uses: emibcn/badge-action@v1
         id: badge
