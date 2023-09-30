@@ -21,11 +21,8 @@ jobs:
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
         id: Extract_branch
       - name: Extract coverage result
-        uses: johanvanhelden/gha-clover-test-coverage-check@v1
         id: coverage
-        with:
-          percentage: "50"
-          filename: "report/coverage.xml"
+        run: echo "##[set-output name=coverage;]$(echo report/METHOD)"
       - name: Generate coverage badge
         uses: emibcn/badge-action@v1
         id: badge
@@ -34,23 +31,23 @@ jobs:
           status: ${{ steps.coverage.outputs.coverage }}
           path: .github/badges/test-coverage.svg
           color: ${{
-              steps.coverage.outputs.coverage > 90 && 'green'              ||
-              steps.coverage.outputs.coverage > 80 && 'yellow,green'       ||
-              steps.coverage.outputs.coverage > 70 && 'yellow'             ||
-              steps.coverage.outputs.coverage > 60 && 'orange,yellow'      ||
-              steps.coverage.outputs.coverage > 50 && 'orange'             ||
-              steps.coverage.outputs.coverage > 40 && 'red,orange'         ||
-              steps.coverage.outputs.coverage > 30 && 'red,red,orange'     ||
-              steps.coverage.outputs.coverage > 20 && 'red,red,red,orange' ||
-              'red' }}
+            steps.coverage.outputs.coverage > 90 && 'green'              ||
+            steps.coverage.outputs.coverage > 80 && 'yellow,green'       ||
+            steps.coverage.outputs.coverage > 70 && 'yellow'             ||
+            steps.coverage.outputs.coverage > 60 && 'orange,yellow'      ||
+            steps.coverage.outputs.coverage > 50 && 'orange'             ||
+            steps.coverage.outputs.coverage > 40 && 'red,orange'         ||
+            steps.coverage.outputs.coverage > 30 && 'red,red,orange'     ||
+            steps.coverage.outputs.coverage > 20 && 'red,red,red,orange' ||
+            'red' }}
       - name: Commit badge
         run: |
-            git config --local user.email "action@github.com"
-            git config --local user.name "GitHub Action"
-            git add .github/badges/test-coverage.svg
-            git commit -m "Add/Update badge"
-            - name: Push badge commit
-              uses: ad-m/github-push-action@master
-              with:
-                github_token: ${{ secrets.GITHUB_TOKEN }}
-                branch: ${{ steps.extract_branch.outputs.branch }}
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .github/badges/test-coverage.svg
+          git commit -m "Add/Update badge"
+          - name: Push badge commit
+            uses: ad-m/github-push-action@master
+            with:
+              github_token: ${{ secrets.GITHUB_TOKEN }}
+              branch: ${{ steps.extract_branch.outputs.branch }}
