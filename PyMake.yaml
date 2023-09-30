@@ -45,6 +45,6 @@ build_report:
 
 clean:
   cmd:
-    - del report.ic
     - rmdir /S /Q out
     - rmdir /S /Q report
+    - cls
