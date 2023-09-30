@@ -2,6 +2,7 @@
 ![BranchCoverage](.github/badges/branch-coverage.svg)
 ![ClassCoverage](.github/badges/class-coverage.svg)
 ![MethodCoverage](.github/badges/method-coverage.svg)
+![LineCoverage](.github/badges/line-coverage.svg)
 
 ## How to run the program
 
