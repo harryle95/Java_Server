@@ -10,8 +10,10 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 public abstract class SocketCommunicator {
+    public Logger logger;
     public List<String> sentMessages;
     public List<String> receivedMessages;
     protected Socket clientSocket;
@@ -28,6 +30,7 @@ public abstract class SocketCommunicator {
             PrintWriter out,
             BufferedReader in,
             String type) {
+        this.logger = Logger.getLogger(this.getClass().getName());
         isUp = true;
         this.clientSocket = clientSocket;
         this.clock = clock;
