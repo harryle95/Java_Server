@@ -35,6 +35,7 @@ public class ReportGenerator {
 
     public static void generateReports() throws IOException {
         ReportApi.xmlReport(xmlPath, reports, outputRoots, sourceRoots, filters);
+        ReportApi.htmlReport(new File("report/html/"), "Coverage Report", null, reports, outputRoots, sourceRoots, filters);
     }
 
     public static void parseCoverageReport() {
