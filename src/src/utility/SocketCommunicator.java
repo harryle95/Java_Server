@@ -71,7 +71,7 @@ public abstract class SocketCommunicator {
     public void send(HTTPMessage message) {
         int TS = clock.advanceAndGetTimeStamp();
         message.setHeader("Lamport-Clock", String.valueOf(TS));
-        logger.info("Sending message: \n" + message.toString());
+        logger.info("Sending message: \n" + message);
         sentMessages.add(message.toString());
         out.println(MessageExchanger.encode(message.toString()));
     }
