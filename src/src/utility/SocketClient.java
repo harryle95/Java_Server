@@ -43,6 +43,7 @@ public class SocketClient extends SocketCommunicator {
                 return receive();
             } else {
                 retry = 0;
+                logger.info("Request times out after all attempts");
                 throw new RuntimeException(e);
             }
         }
