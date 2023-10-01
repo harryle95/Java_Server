@@ -39,6 +39,7 @@ public abstract class SocketCommunicator {
         this.type = type;
         sentMessages = new ArrayList<>();
         receivedMessages = new ArrayList<>();
+        logger.info("Connecting to remote: " + clientSocket.getRemoteSocketAddress());
     }
 
     public String receive() throws IOException {
@@ -50,6 +51,7 @@ public abstract class SocketCommunicator {
                 clock.advanceAndSetTimeStamp(Integer.parseInt(response.header.get(
                         "Lamport-Clock")));
                 receivedMessages.add(response.toString());
+                logger.info("Receive response: \n" + response);
                 return response.toString();
             } else {
                 HTTPRequest request =
@@ -57,9 +59,11 @@ public abstract class SocketCommunicator {
                 clock.advanceAndSetTimeStamp(Integer.parseInt(request.header.get(
                         "Lamport-Clock")));
                 receivedMessages.add(request.toString());
+                logger.info("Receive request: \n" + request);
                 return request.toString();
             }
         }
+        logger.info("Receive null");
         return null;
     }
 
@@ -67,14 +71,16 @@ public abstract class SocketCommunicator {
     public void send(HTTPMessage message) {
         int TS = clock.advanceAndGetTimeStamp();
         message.setHeader("Lamport-Clock", String.valueOf(TS));
+        logger.info("Sending message: \n" + message.toString());
         sentMessages.add(message.toString());
         out.println(MessageExchanger.encode(message.toString()));
     }
 
 
     public void close() throws IOException {
+        logger.info("Closing client-side connection");
         clientSocket.close();
-//        System.out.println("Closing client-side connection");
+        logger.info("Client-side connection closed.");
         isUp = false;
     }
 }

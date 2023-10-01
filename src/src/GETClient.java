@@ -59,8 +59,6 @@ public class GETClient extends SocketClient {
         send(request);
         while (true) {
             String response = receive();
-            if (response != null)
-//                System.out.println(response);
             break;
         }
         close();

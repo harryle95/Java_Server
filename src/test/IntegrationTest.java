@@ -48,7 +48,6 @@ public abstract class IntegrationTest {
         try {
             server.close();
         } catch (IOException e) {
-//            System.out.println("Already Closed");
         }
     }
 
@@ -65,7 +64,6 @@ public abstract class IntegrationTest {
             try {
                 server.start();
             } catch (IOException e) {
-//                System.out.println("Server is already closed");
             }
         }
     }
@@ -480,7 +478,7 @@ class MultipleSerialPUTTest extends IntegrationTest {
         new Thread(task3).start();
         new Thread(task4).start();
 
-        Thread.sleep(500);
+        Thread.sleep(1000);
         assertTrue(server.getArchive().get("/127.0.0.1").isEmpty());
     }
 

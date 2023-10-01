@@ -39,7 +39,6 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
             LinkedBlockingQueue<FileMetadata> updateQueue,
             ScheduledExecutorService schedulePool, int freshcount, int waitTime) {
         super(socket, clock, out, in, "server");
-        logger = Logger.getLogger(this.getClass().getName());
         this.database = database;
         this.archive = archive;
         this.requestHandlerPool = requestHandlerPool;
@@ -60,7 +59,6 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
                 // Client will close the connection
                 if (message == null)
                     break;
-//                System.out.println(message);
                 HTTPRequest request = HTTPRequest.fromMessage(message);
                 // Save metadata to remove archive's entry 30s after disconnection
                 if (request.method.equals("PUT"))
@@ -68,6 +66,7 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
                             request.getURIEndPoint(), String.valueOf(clock.getTimeStamp()));
 
                 // Submit request to a task queue and get the Future as a CompletionService
+                logger.info("Submitting job to execution threadpool");
                 Callable<HTTPResponse> task = new RequestHandler(
                         request,
                         clientSocket.getInetAddress().toString(),
@@ -79,15 +78,15 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
                 );
                 Future<HTTPResponse> future = requestHandlerPool.submit(task);
                 HTTPResponse futureResponse = future.get();
-//                System.out.println(futureResponse);
                 send(futureResponse);
             }
             // Submit a cleanup task if request is PUT
             if (metadataPUT != null) {
+                logger.info("Schedule a job to remove entry after " + WAIT_TIME);
                 Runnable removeArchiveData = new RemoveEntryRunnable(metadataPUT, archive);
                 schedulePool.schedule(removeArchiveData, WAIT_TIME, TimeUnit.MILLISECONDS);
             }
-//            System.out.println("Closing server-side connection");
+            close();
         } catch (IOException | ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         }

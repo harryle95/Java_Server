@@ -14,9 +14,11 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.*;
+import java.util.logging.Logger;
 
 //TODO - Add HeartBeat/HealthCheck Runnable
 public class AggregationServer {
+    private final Logger logger;
     private final ConcurrentMap<String, String> database;
     private final ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<String,
             String>>> archive;
@@ -42,6 +44,7 @@ public class AggregationServer {
     private ServerSocket serverSocket;
 
     public AggregationServer(String[] argv) throws IOException, ClassNotFoundException {
+        logger = Logger.getLogger(this.getClass().getName());
         int port = getPort(argv);
         isUp = true;
         serverSnapshot = new ServerSnapshot();
@@ -108,7 +111,7 @@ public class AggregationServer {
     public void run(int port) throws IOException {
         serverSocket = new ServerSocket(port);
         serverSocket.setReuseAddress(true);
-//        System.out.println("Server listening at port: " + port);
+        logger.info("Server listens to port " + port);
     }
 
     public void start() throws IOException {
@@ -122,6 +125,7 @@ public class AggregationServer {
         }, BACKUP_TIME, BACKUP_TIME, TimeUnit.MINUTES);
         while (true) {
             Socket clientSocket = serverSocket.accept();
+            logger.info("Create a new client handling socket at " + clientSocket.getLocalSocketAddress());
             // Connection Pool listen for incoming requests
             connectionHandlerPool.execute(new ConnectionHandler(
                     clientSocket,
@@ -133,7 +137,9 @@ public class AggregationServer {
     }
 
     public void close() throws IOException {
+        logger.info("Closing Server");
         serverSocket.close();
+        logger.info("Server is closed");
         isUp = false;
     }
 }

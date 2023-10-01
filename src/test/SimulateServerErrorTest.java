@@ -27,7 +27,6 @@ public abstract class SimulateServerErrorTest {
                     while (in.readLine() != null) {
                     }
                 } catch (IOException e) {
-//                    System.out.println("Connection is Closed");
                 }
             }
         }).start();
@@ -37,7 +36,6 @@ public abstract class SimulateServerErrorTest {
         try {
             serverSocket.close();
         } catch (IOException e) {
-//            System.out.println(e.getMessage());
         }
     }
 
