@@ -5,19 +5,12 @@ compile:
       OUTDIR: out/production/Java_Server
       CLASSDIR: src/src
       SRCDIR: .\src\src\
+      TESTDIR: src/test
+      JUNITJAR: jar_files/
   cmd:
     - cd $(SRCDIR) && dir /s /B *.java > ..\..\sources.txt
     - javac -d $(OUTDIR) -cp $(CLASSDIR) @sources.txt
     - del sources.txt
-
-compile_test:
-  var:
-    basic:
-      OUTDIR: out/test/Java_Server
-      CLASSDIR: src/src
-      TESTDIR: src/test
-      JUNITJAR: jar_files/
-  cmd:
     - cd $(TESTDIR) && dir /s /B *.java > ..\..\sources.txt
     - javac -d $(OUTDIR) -cp "$(JUNITJAR)/*;$(CLASSDIR)" @sources.txt
     - del sources.txt
@@ -28,10 +21,11 @@ run_test:
       JUNITJAR: jar_files/junit-platform-console-standalone-1.9.3.jar
       TESTPATH: out/test/Java_Server
       CLASSPATH: out/production/Java_Server
+    option:
+      logging: -Djava.util.logging.config.file=src/config/logging.properties
   cmd:
     - pymake run compile
-    - pymake run compile_test
-    - java -javaagent:jar_files/intellij-coverage-agent-1.0.737.jar=src\config\config.args -jar $(JUNITJAR) -cp $(TESTPATH) -cp (CLASSPATH) --scan-classpath
+    - java $(logging) -javaagent:jar_files/intellij-coverage-agent-1.0.737.jar=src\config\config.args -jar $(JUNITJAR) -cp $(TESTPATH) -cp $(CLASSPATH) --scan-classpath
 
 build_report:
   var:
@@ -42,7 +36,6 @@ build_report:
     - javac -d $(OUTDIR) -cp $(CLASSPATH) src/report/ReportGenerator.java
     - java -cp $(CLASSPATH) ReportGenerator
 
-
 clean:
   cmd:
     - rmdir /S /Q out
@@ -50,15 +43,100 @@ clean:
     - rmdir /S /Q src\backups\
     - cls
 
+
 # TO RUN CMD ON UNIX
 compile_unix:
   var:
     basic:
       OUTDIR: out/production/Java_Server
       CLASSDIR: src/src
-      SRCDIR: ./src/src/
+      SRCDIR: src/src/
+      TESTDIR: src/test/
+      TESTOUTDIR: out/test/src
+      JARFILES: jar_files/junit-platform-console-standalone-1.9.3.jar
   cmd: |
     #!/usr/bin/bash
     find $(CLASSDIR) -name "*.java" > sources.txt
     javac -d $(OUTDIR) -cp $(CLASSDIR) @sources.txt
     rm sources.txt
+    find $(TESTDIR) -name "*.java" > sources.txt
+    javac -d $(TESTOUTDIR) -cp $(JARFILES):$(CLASSDIR) @sources.txt
+    rm sources.txt
+
+run_test_unix:
+  var:
+    basic:
+      JUNITJAR: junit-platform-console-standalone-1.9.3.jar
+      JARDIR: jar_files
+      TESTPATH: out/test/Java_Server
+      CLASSPATH: out/production/Java_Server
+      OUTDIR: out/production/Java_Server
+      TESTOUTDIR: out/test/src
+    option:
+      logging: -Djava.util.logging.config.file=src/config/logging.properties
+  cmd: |
+    #!/usr/bin/bash
+    pymake run compile_unix
+    java $(logging) -javaagent:jar_files/intellij-coverage-agent-1.0.737.jar=src/config/config.args -jar $(JARDIR)/$(JUNITJAR) -cp $(JARDIR):$(TESTOUTDIR):$(OUTDIR) --scan-classpath
+
+
+build_report_unix:
+  var:
+    basic:
+      OUTDIR: out/report/
+      CLASSPATH: out/report/:jar_files/intellij-coverage-reporter-1.0.737.jar:jar_files/freemarker-2.3.31.jar:jar_files/coverage-report-1.0.22.jar:jar_files/intellij-coverage-agent-1.0.737.jar
+  cmd: |
+    #!/usr/bin/bash
+    javac -d $(OUTDIR) -cp $(CLASSPATH) src/report/ReportGenerator.java
+    java -cp $(CLASSPATH) ReportGenerator
+
+build_log:
+  cmd:
+    python3.10 src/script/log_report.py --source_dir src/log --dest_dir src/log/agg
+
+agg_server:
+  var:
+    basic:
+      OUTDIR: out/production/Java_Server
+      port: 4567
+    option:
+      logging: -Djava.util.logging.config.file=src/config/logging.properties
+  cmd: |
+    #!/usr/bin/bash
+    java $(logging) -cp $(OUTDIR) AggregationServer $(port)
+
+get_client:
+  var:
+    basic:
+      OUTDIR: out/production/Java_Server
+      hostname: 127.0.0.1
+      port: 4567
+      stationID: ""
+    option:
+      logging: -Djava.util.logging.config.file=src/config/logging.properties
+  cmd: |
+    #!/usr/bin/bash
+    java $(logging) -cp $(OUTDIR) GETClient $(hostname):$(port) $(stationID)
+
+
+content_server:
+  var:
+    basic:
+      OUTDIR: out/production/Java_Server
+      hostname: 127.0.0.1
+      port: 4567
+      rootdir: src/resources
+      fileName: SingleEntry/Adelaide_2023-07-15_16-00-00.txt
+    option:
+      logging: -Djava.util.logging.config.file=src/config/logging.properties
+  cmd: |
+    #!/usr/bin/bash
+    java $(logging) -cp $(OUTDIR) ContentServer $(hostname):$(port) $(rootdir)/$(fileName)
+
+clean_unix:
+  cmd:
+    - rm -rf out
+    - rm -rf report
+    - rm -rf src/backups/*
+    - rm -rf src/log/*
+    - clear

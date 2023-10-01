@@ -58,7 +58,7 @@ class Record:
         records = []
         for file in file_list:
             records.extend(Record.from_file(dir_path / file))
-        return sorted(records, key=lambda item: item.sequence)
+        return sorted(records, key=lambda item: item.millis)
 
     @staticmethod
     def to_string(records: List["Record"]) -> str:
