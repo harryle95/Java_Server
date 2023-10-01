@@ -31,7 +31,7 @@ run_test:
   cmd:
     - pymake run compile
     - pymake run compile_test
-    - java -javaagent:jar_files/intellij-coverage-agent-1.0.737.jar=config.args -jar $(JUNITJAR) -cp $(TESTPATH) -cp (CLASSPATH) --scan-classpath
+    - java -javaagent:jar_files/intellij-coverage-agent-1.0.737.jar=src\config\config.args -jar $(JUNITJAR) -cp $(TESTPATH) -cp (CLASSPATH) --scan-classpath
 
 build_report:
   var:
@@ -47,5 +47,5 @@ clean:
   cmd:
 #    - rmdir /S /Q out
 #    - rmdir /S /Q report
-    - rmdir /S /Q src\backups\
+#    - rmdir /S /Q src\backups\
     - cls
