@@ -30,12 +30,14 @@ public class SocketClient extends SocketCommunicator {
 
     public String receive() throws IOException {
         // GETClient and ContentServer can resend messages up to 5 times
+        logger.info("Receiving data from remote.");
         try {
             String message = super.receive();
             retry = 0;
             return message;
         } catch (SocketTimeoutException e) {
             retry += 1;
+            logger.info("Retry attempt: " + retry);
             if (retry < MAX_RETRY) {
                 send(HTTPRequest.fromMessage(sentMessages.get(sentMessages.size() - 1)));
                 return receive();
