@@ -45,7 +45,20 @@ build_report:
 
 clean:
   cmd:
-#    - rmdir /S /Q out
-#    - rmdir /S /Q report
-#    - rmdir /S /Q src\backups\
+    - rmdir /S /Q out
+    - rmdir /S /Q report
+    - rmdir /S /Q src\backups\
     - cls
+
+# TO RUN CMD ON UNIX
+compile_unix:
+  var:
+    basic:
+      OUTDIR: out/production/Java_Server
+      CLASSDIR: src/src
+      SRCDIR: ./src/src/
+  cmd: |
+    #!/usr/bin/bash
+    find $(CLASSDIR) -name "*.java" > sources.txt
+    javac -d $(OUTDIR) -cp $(CLASSDIR) @sources.txt
+    rm sources.txt
