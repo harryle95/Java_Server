@@ -1,4 +1,4 @@
-import Coverage.IgnoreCoverage;
+import annotations.IgnoreCoverage;
 import handlers.ConnectionHandler;
 import handlers.PriorityRunnableFuture;
 import handlers.PriorityRunnableFutureComparator;

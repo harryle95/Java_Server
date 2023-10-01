@@ -28,7 +28,7 @@ public class ReportGenerator {
             Collections.<Pattern>emptyList(),
             Collections.<Pattern>emptyList(),
             Collections.<Pattern>singletonList(
-                    Pattern.compile("Coverage.IgnoreCoverage")));
+                    Pattern.compile("annotations.IgnoreCoverage")));
     ;
     public static Document doc;
     public static NodeList nList;

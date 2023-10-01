@@ -1,4 +1,4 @@
-package Coverage;
+package annotations;
 
 public @interface IgnoreCoverage {
 }

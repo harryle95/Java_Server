@@ -1,5 +1,5 @@
 package handlers;
-import Coverage.IgnoreCoverage;
+import annotations.IgnoreCoverage;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RunnableFuture;

@@ -1,6 +1,6 @@
 package handlers;
 
-import Coverage.IgnoreCoverage;
+import annotations.IgnoreCoverage;
 
 
 import java.util.Comparator;
