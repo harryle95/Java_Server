@@ -1,6 +1,6 @@
 package handlers;
 
-import Coverage.IgnoreCoverage;
+import annotations.IgnoreCoverage;
 import utility.FileMetadata;
 import utility.LamportClock;
 import utility.SocketCommunicator;
@@ -39,6 +39,7 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
             LinkedBlockingQueue<FileMetadata> updateQueue,
             ScheduledExecutorService schedulePool, int freshcount, int waitTime) {
         super(socket, clock, out, in, "server");
+        logger = Logger.getLogger(this.getClass().getName());
         this.database = database;
         this.archive = archive;
         this.requestHandlerPool = requestHandlerPool;
