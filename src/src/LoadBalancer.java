@@ -21,6 +21,10 @@ import java.util.concurrent.TimeUnit;
 public class LoadBalancer extends SocketServer {
     private int newPort;
 
+    public AggregationServer getBuiltinServer() {
+        return builtinServer;
+    }
+
     private AggregationServer builtinServer;
 
     private final ScheduledExecutorService heartbeatPool = Executors.newSingleThreadScheduledExecutor();
@@ -30,6 +34,10 @@ public class LoadBalancer extends SocketServer {
     private int HEARTBEAT_SCHEDULE = Integer.parseInt(config.get("HEARTBEAT_SCHEDULE", "30"));
 
     private final List<ServerInfo> registry = new ArrayList<>();
+
+    public ServerInfo getLeader() {
+        return leader;
+    }
 
     private ServerInfo leader;
 
@@ -127,7 +135,6 @@ public class LoadBalancer extends SocketServer {
                 try {
                     builtinServer.start();
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
                 }
             }).start();
             addServer("127.0.0.1", newPort);
@@ -137,8 +144,18 @@ public class LoadBalancer extends SocketServer {
         }
     }
 
+    @IgnoreCoverage
     public static class ServerInfo {
         private final String hostname;
+
+        public String getHostname() {
+            return hostname;
+        }
+
+        public int getPort() {
+            return port;
+        }
+
         private final int port;
 
         private final int hashCode;
@@ -202,11 +219,12 @@ public class LoadBalancer extends SocketServer {
                         break;
                     handleRequest(request);
                 } catch (IOException e) {
-                    logger.info("Error: runtime error: " + e);
+                    logger.info("ERROR: runtime error: " + e);
                     break;
                 }
             }
             try {
+                serverInterface.close();
                 close();
             } catch (IOException e) {
                 logger.info("ERROR: unable to close server socket");
@@ -217,8 +235,10 @@ public class LoadBalancer extends SocketServer {
     @Override
     protected void pre_close_hook() {
         super.pre_close_hook();
-        heartbeatPool.close();
+        logger.info("Closing load balancer connection pool");
         connectionPool.close();
+        logger.info("Closing load balancer heartbeat pool");
+        heartbeatPool.close();
         try {
             if (builtinServer != null && builtinServer.isUp())
                 builtinServer.close();

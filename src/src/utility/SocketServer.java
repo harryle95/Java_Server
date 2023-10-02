@@ -71,10 +71,11 @@ public abstract class SocketServer {
     }
 
     public void close() throws IOException {
+        logger.info("Initiating shutdown procedure " + this.getClass().getName());
         pre_close_hook();
-        logger.info("Closing Server");
+        logger.info("Closing Server " + this.getClass().getName());
         serverSocket.close();
-        logger.info("Server is closed");
+        logger.info(this.getClass().getName() + " is closed");
         isUp = false;
         post_close_hook();
     }

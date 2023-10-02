@@ -113,8 +113,11 @@ public class AggregationServer extends SocketServer {
     @Override
     protected void pre_close_hook(){
         super.pre_close_hook();
+        logger.info("Closing agg server connection handler pool: " + connectionHandlerPool.isTerminated());
         connectionHandlerPool.close();
+        logger.info("Closing agg server schedule pool");
         schedulePool.close();
+        logger.info("Closing agg server request pool");
         requestHandlerPool.close();
     }
 }
