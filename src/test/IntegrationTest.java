@@ -42,6 +42,7 @@ public abstract class IntegrationTest {
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
+        server.setWAIT_TIME(100);
     }
 
 
@@ -319,6 +320,7 @@ class OneGetOneContentTest extends IntegrationTest {
         client.send(request);
         HTTPResponse response = HTTPResponse.fromMessage(client.receive());
         assertEquals("400", response.statusCode);
+        client.close();
     }
 
 }
