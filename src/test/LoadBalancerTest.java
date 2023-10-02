@@ -25,7 +25,7 @@ class LoadBalancerTest {
     }
 
 
-    void setupHook() throws IOException {
+    void setupHook() throws IOException, ClassNotFoundException {
         loadBalancer = new LoadBalancer(4567);
         new Thread(() -> {
             try {
@@ -36,7 +36,7 @@ class LoadBalancerTest {
     }
 
     @BeforeEach
-    void setup() throws IOException {
+    void setup() throws IOException, ClassNotFoundException {
         setupHook();
         loadBalancer.getBuiltinServer().setWAIT_TIME(1);
     }
@@ -160,4 +160,62 @@ class LoadBalancerFailOverTest extends LoadBalancerWithFixtureTest {
         assertFalse(loadBalancer.isAlive("127.0.0.1", 4568));
     }
 
+    @Test
+    void testAutoFailOverAfterHealthCheck() throws IOException {
+        loadBalancer.getBuiltinServer().close();
+        assertEquals(4568, loadBalancer.getLeader().getPort());
+        assertFalse(loadBalancer.isAlive("127.0.0.1", 4568));
+        loadBalancer.electLeader();
+        assertTrue(loadBalancer.isAlive("127.0.0.1", 4568));
+    }
+
+}
+
+class LoadBalancerUsePreSetFailOverServerTest extends LoadBalancerWithFixtureTest {
+
+    private AggregationServer aggServer;
+
+    void setupHook() throws IOException, ClassNotFoundException {
+        aggServer = new AggregationServer(4568);
+        new Thread(() -> {
+            try {
+                aggServer.start();
+            } catch (IOException e) {
+            }
+        }).start();
+        super.setupHook();
+        loadBalancer.addServer("127.0.0.1",4568);
+        loadBalancer.setLeader("127.0.0.1", 4568);
+    }
+
+    @Test
+    void testBuiltInServerIsNot4568(){
+        assertEquals(4569, loadBalancer.getBuiltinServer().port);
+    }
+
+    @Test
+    void testLeaderIs4568(){
+        assertEquals(4568, loadBalancer.getLeader().getPort());
+    }
+
+    @Test
+    void testLeaderIsActive(){
+        assertTrue(loadBalancer.isAlive("127.0.0.1", 4568));
+    }
+
+    @Test
+    void testLeaderIsSwappedTo4569WhenDead() throws IOException {
+        aggServer.close();
+        loadBalancer.electLeader();
+        assertEquals(4569, loadBalancer.getLeader().getPort());
+    }
+
+    @AfterEach
+    void shutdown() {
+        super.shutdown();
+        try {
+            aggServer.close();
+        }catch (IOException e){
+        }
+    }
 }

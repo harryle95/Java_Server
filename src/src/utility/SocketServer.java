@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 
 public abstract class SocketServer {
     protected final Logger logger = Logger.getLogger(this.getClass().getName());
-    private final int port;
+    public final int port;
 
     protected final LamportClock clock;
     protected ServerSocket serverSocket;

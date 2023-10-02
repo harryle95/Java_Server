@@ -31,7 +31,7 @@ public class LoadBalancer extends SocketServer {
 
     private final ExecutorService connectionPool = Executors.newCachedThreadPool();
 
-    private int HEARTBEAT_SCHEDULE = Integer.parseInt(config.get("HEARTBEAT_SCHEDULE", "30"));
+    private final int HEARTBEAT_SCHEDULE = Integer.parseInt(config.get("HEARTBEAT_SCHEDULE", "30000"));
 
     private final List<ServerInfo> registry = new ArrayList<>();
 
@@ -51,15 +51,16 @@ public class LoadBalancer extends SocketServer {
             registry.add(new ServerInfo(hostname, port));
     }
 
-    private synchronized void electLeader() throws IOException {
+    public synchronized void electLeader() throws IOException {
+        logger.info("Electing new leader among connected servers");
         for (ServerInfo info : registry) {
             if (isAlive(info.hostname, info.port)) {
                 leader = info;
+                logger.info("Success: Selecting: " + info.hostname + ":" + info.port);
                 return;
             }
         }
-        if (builtinServer.isUp())
-            builtinServer.close();
+        logger.info("Not connecting to external server, creating a self-managed server.");
         startBuiltInServer();
         setLeader("127.0.0.1", newPort);
     }
@@ -91,7 +92,7 @@ public class LoadBalancer extends SocketServer {
         run();
     }
 
-    @Override
+    @IgnoreCoverage
     protected void pre_start_hook() {
         super.pre_start_hook();
         heartbeatPool.scheduleWithFixedDelay(() -> {
@@ -102,7 +103,7 @@ public class LoadBalancer extends SocketServer {
                     throw new RuntimeException(e);
                 }
             }
-        },HEARTBEAT_SCHEDULE, HEARTBEAT_SCHEDULE, TimeUnit.SECONDS);
+        }, HEARTBEAT_SCHEDULE, HEARTBEAT_SCHEDULE, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -124,9 +125,6 @@ public class LoadBalancer extends SocketServer {
         server.close();
     }
 
-    public void setHEARTBEAT_SCHEDULE(int HEARTBEAT_SCHEDULE) {
-        this.HEARTBEAT_SCHEDULE = HEARTBEAT_SCHEDULE;
-    }
 
     private void startBuiltInServer() {
         try {
