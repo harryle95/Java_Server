@@ -6,19 +6,16 @@ import handlers.RequestHandler;
 import utility.FileMetadata;
 import utility.LamportClock;
 import utility.ServerSnapshot;
+import utility.SocketServer;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.*;
-import java.util.logging.Logger;
 
-//TODO - Add HeartBeat/HealthCheck Runnable
-public class AggregationServer {
-    private final Logger logger;
+public class AggregationServer extends SocketServer {
     private final ConcurrentMap<String, String> database;
     private final ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<String,
             String>>> archive;
@@ -37,16 +34,12 @@ public class AggregationServer {
     // incoming requests
     private final int POOL_SIZE = 20;
     private final LamportClock clock;
-    public boolean isUp;
     private int FRESH_PERIOD_COUNT = 20; // how many updates until the current is no longer fresh
     private int WAIT_TIME = 30000; // how long to wait until the cleanup task - 30 seconds
     private final int BACKUP_TIME = 15; // time between auto backup - default 15 minutes
-    private ServerSocket serverSocket;
 
-    public AggregationServer(String[] argv) throws IOException, ClassNotFoundException {
-        logger = Logger.getLogger(this.getClass().getName());
-        int port = getPort(argv);
-        isUp = true;
+    public AggregationServer(int port) throws IOException, ClassNotFoundException {
+        super(port);
         serverSnapshot = new ServerSnapshot();
         database = serverSnapshot.getDatabase();
         archive = serverSnapshot.getArchive();
@@ -68,24 +61,14 @@ public class AggregationServer {
         };
 
         clock = new LamportClock();
-        run(port);
+        run();
     }
 
-    public static int getPort(String[] args) {
-        int port;
-        if (args.length == 1) {
-            port = Integer.parseInt(args[0]);
-        } else if (args.length == 0) {
-            port = 4567;
-        } else {
-            throw new RuntimeException("Usage: AggregationServer [port].");
-        }
-        return port;
-    }
 
     @IgnoreCoverage
     public static void main(String[] args) throws IOException, ClassNotFoundException {
-        AggregationServer server = new AggregationServer(args);
+        int port = getPort(args);
+        AggregationServer server = new AggregationServer(port);
         server.start();
         server.close();
     }
@@ -108,21 +91,10 @@ public class AggregationServer {
         return archive;
     }
 
-    public void run(int port) throws IOException {
-        serverSocket = new ServerSocket(port);
-        serverSocket.setReuseAddress(true);
-        logger.info("Server listens to port " + port);
-    }
 
     public void start() throws IOException {
         // Backup Pool Create Backup Snapshot
-        schedulePool.scheduleWithFixedDelay(()->{
-            try {
-                serverSnapshot.createSnapShot();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }, BACKUP_TIME, BACKUP_TIME, TimeUnit.MINUTES);
+        schedulePool.scheduleWithFixedDelay(serverSnapshot::createSnapShot, BACKUP_TIME, BACKUP_TIME, TimeUnit.MINUTES);
         while (true) {
             Socket clientSocket = serverSocket.accept();
             logger.info("Create a new client handling socket at " + clientSocket.getLocalSocketAddress());
@@ -136,12 +108,14 @@ public class AggregationServer {
         }
     }
 
-    public void close() throws IOException {
-        logger.info("Closing Server");
-        serverSocket.close();
-        logger.info("Server is closed");
-        isUp = false;
-    }
+//    @IgnoreCoverage
+//    public void close() throws IOException {
+//        connectionHandlerPool.close();
+//        schedulePool.close();
+//        requestHandlerPool.close();
+//        super.close();
+//    }
+
 }
 
 
