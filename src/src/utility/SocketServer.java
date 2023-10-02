@@ -1,7 +1,5 @@
 package utility;
 
-import annotations.IgnoreCoverage;
-
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.logging.Logger;
