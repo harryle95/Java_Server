@@ -1,5 +1,6 @@
 package utility;
 
+import utility.config.Config;
 import utility.http.HTTPMessage;
 import utility.http.HTTPRequest;
 import utility.http.HTTPResponse;
@@ -21,6 +22,8 @@ public abstract class SocketCommunicator {
     PrintWriter out;
     BufferedReader in;
     String type;
+
+    protected Config config = new Config("src/config/client.properties");
 
     public boolean isUp;
 
@@ -78,9 +81,8 @@ public abstract class SocketCommunicator {
 
 
     public void close() throws IOException {
-        logger.info("Closing client-side connection");
+        logger.info("Closing " + type + " connection");
         clientSocket.close();
-        logger.info("Client-side connection closed.");
         isUp = false;
     }
 }

@@ -1,25 +1,34 @@
 package utility;
 
+import utility.config.Config;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.logging.Logger;
 
 public abstract class SocketServer {
-    protected final Logger logger;
+    protected final Logger logger = Logger.getLogger(this.getClass().getName());
     private final int port;
+
+    protected final LamportClock clock;
     protected ServerSocket serverSocket;
 
+    public Config getConfig() {
+        return config;
+    }
+
+    protected Config config = new Config("src/config/server.properties");
 
     public boolean isUp() {
         return isUp;
     }
 
-    protected boolean isUp;
+    protected boolean isUp = true;
 
     public SocketServer(int port) {
-        logger = Logger.getLogger(this.getClass().getName());
         this.port = port;
-        this.isUp = true;
+        clock = new LamportClock();
+
     }
 
     public static int getPort(String[] args) {
@@ -41,12 +50,32 @@ public abstract class SocketServer {
         logger.info("Server listens to port " + port);
     }
 
-    public abstract void start() throws IOException;
+    protected void pre_start_hook() {
+    }
+
+    protected void start_hook() throws IOException {
+    }
+
+
+    protected void pre_close_hook() {
+    }
+
+    protected void post_close_hook() {
+    }
+
+    public void start() throws IOException {
+        pre_start_hook();
+        while (true) {
+            start_hook();
+        }
+    }
 
     public void close() throws IOException {
+        pre_close_hook();
         logger.info("Closing Server");
         serverSocket.close();
         logger.info("Server is closed");
         isUp = false;
+        post_close_hook();
     }
 }

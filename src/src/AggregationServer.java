@@ -4,7 +4,6 @@ import handlers.PriorityRunnableFuture;
 import handlers.PriorityRunnableFutureComparator;
 import handlers.RequestHandler;
 import utility.FileMetadata;
-import utility.LamportClock;
 import utility.ServerSnapshot;
 import utility.SocketServer;
 
@@ -32,15 +31,16 @@ public class AggregationServer extends SocketServer {
     private final ServerSnapshot serverSnapshot; // Server snapshot service
 
     // incoming requests
-    private final int POOL_SIZE = 20;
-    private final LamportClock clock;
-    private int FRESH_PERIOD_COUNT = 20; // how many updates until the current is no longer fresh
-    private int WAIT_TIME = 30000; // how long to wait until the cleanup task - 30 seconds
-    private final int BACKUP_TIME = 15; // time between auto backup - default 15 minutes
+    private final int POOL_SIZE = Integer.parseInt(config.get("POOL_SIZE", "20"));
+    private int FRESH_PERIOD_COUNT = Integer.parseInt(config.get("FRESH_PERIOD_COUNT", "20")); // how many updates until the current is no longer fresh
+    private int WAIT_TIME = Integer.parseInt(config.get("WAIT_TIME", "30000")); // how long to wait until the cleanup task - 30 seconds
+    private final int BACKUP_TIME = Integer.parseInt(config.get("BACKUP_TIME", "15")); // time between auto backup - default 15 minutes
 
     public AggregationServer(int port) throws IOException, ClassNotFoundException {
         super(port);
-        serverSnapshot = new ServerSnapshot();
+        serverSnapshot = new ServerSnapshot(
+                config.get("databaseDir", "src/backups/database"),
+                config.get("archiveDir", "src/backups/archive"));
         database = serverSnapshot.getDatabase();
         archive = serverSnapshot.getArchive();
         connectionHandlerPool = Executors.newCachedThreadPool();
@@ -59,8 +59,6 @@ public class AggregationServer extends SocketServer {
                         ((RequestHandler) callable).getPriority());
             }
         };
-
-        clock = new LamportClock();
         run();
     }
 
@@ -92,30 +90,33 @@ public class AggregationServer extends SocketServer {
     }
 
 
-    public void start() throws IOException {
-        // Backup Pool Create Backup Snapshot
+    @Override
+    protected void pre_start_hook() {
+        super.pre_start_hook();
         schedulePool.scheduleWithFixedDelay(serverSnapshot::createSnapShot, BACKUP_TIME, BACKUP_TIME, TimeUnit.MINUTES);
-        while (true) {
-            Socket clientSocket = serverSocket.accept();
-            logger.info("Create a new client handling socket at " + clientSocket.getLocalSocketAddress());
-            // Connection Pool listen for incoming requests
-            connectionHandlerPool.execute(new ConnectionHandler(
-                    clientSocket,
-                    new BufferedReader(new InputStreamReader(clientSocket.getInputStream())),
-                    new PrintWriter(clientSocket.getOutputStream(), true),
-                    clock, database, archive, requestHandlerPool, updateQueue,
-                    schedulePool, FRESH_PERIOD_COUNT, WAIT_TIME));
-        }
     }
 
-    @IgnoreCoverage
-    public void close() throws IOException {
+    @Override
+    protected void start_hook() throws IOException {
+        super.start_hook();
+        Socket clientSocket = serverSocket.accept();
+        logger.info("Create a new client handling socket at " + clientSocket.getLocalSocketAddress());
+        // Connection Pool listen for incoming requests
+        connectionHandlerPool.execute(new ConnectionHandler(
+                clientSocket,
+                new BufferedReader(new InputStreamReader(clientSocket.getInputStream())),
+                new PrintWriter(clientSocket.getOutputStream(), true),
+                clock, database, archive, requestHandlerPool, updateQueue,
+                schedulePool, FRESH_PERIOD_COUNT, WAIT_TIME));
+    }
+
+    @Override
+    protected void pre_close_hook(){
+        super.pre_close_hook();
         connectionHandlerPool.close();
         schedulePool.close();
         requestHandlerPool.close();
-        super.close();
     }
-
 }
 
 
