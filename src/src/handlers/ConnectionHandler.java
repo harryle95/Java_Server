@@ -60,17 +60,18 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
                 if (message == null)
                     break;
                 HTTPRequest request = HTTPRequest.fromMessage(message);
+                int receiveTS = clock.getTimeStamp();
                 // Save metadata to remove archive's entry 30s after disconnection
                 if (request.method.equals("PUT"))
                     metadataPUT = new FileMetadata(clientSocket.getInetAddress().toString(),
-                            request.getURIEndPoint(), String.valueOf(clock.getTimeStamp()));
+                            request.getURIEndPoint(), String.valueOf(receiveTS));
 
                 // Submit request to a task queue and get the Future as a CompletionService
                 logger.info("Submitting job to execution threadpool");
                 Callable<HTTPResponse> task = new RequestHandler(
                         request,
                         clientSocket.getInetAddress().toString(),
-                        clock.getTimeStamp(),
+                        receiveTS,
                         updateQueue,
                         database,
                         FRESH_COUNT,
@@ -82,13 +83,13 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
             }
             // Submit a cleanup task if request is PUT
             if (metadataPUT != null) {
-                logger.info("Schedule a job to remove entry after " + WAIT_TIME);
+                logger.info("Schedule a job to remove entry: " + metadataPUT.remoteIP() + "/" + metadataPUT.fileName() + " after " + WAIT_TIME);
                 Runnable removeArchiveData = new RemoveEntryRunnable(metadataPUT, archive);
                 schedulePool.schedule(removeArchiveData, WAIT_TIME, TimeUnit.MILLISECONDS);
             }
             close();
         } catch (IOException | ExecutionException | InterruptedException e) {
-            throw new RuntimeException(e);
+            logger.info("Runtime exception " + e.getMessage());
         }
     }
 }
