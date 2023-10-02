@@ -50,19 +50,23 @@ public class ServerSnapshot {
         return archive;
     }
 
-    public void createSnapShot() throws IOException {
-        logger.info("Creating database snapshot");
-        FileOutputStream dbOutStream = new FileOutputStream("src/backups/database");
-        ObjectOutputStream dbOutObj = new ObjectOutputStream(dbOutStream);
-        dbOutObj.writeObject(database);
+    public void createSnapShot(){
+        try {
+            logger.info("Creating database snapshot");
+            FileOutputStream dbOutStream = new FileOutputStream("src/backups/database");
+            ObjectOutputStream dbOutObj = new ObjectOutputStream(dbOutStream);
+            dbOutObj.writeObject(database);
 
-        dbOutObj.close();
-        dbOutStream.close();
+            dbOutObj.close();
+            dbOutStream.close();
 
-        FileOutputStream archiveOutStream = new FileOutputStream("src/backups/archive");
-        ObjectOutputStream archiveOutObj = new ObjectOutputStream(archiveOutStream);
-        archiveOutObj.writeObject(archive);
-        archiveOutObj.close();
-        archiveOutStream.close();
+            FileOutputStream archiveOutStream = new FileOutputStream("src/backups/archive");
+            ObjectOutputStream archiveOutObj = new ObjectOutputStream(archiveOutStream);
+            archiveOutObj.writeObject(archive);
+            archiveOutObj.close();
+            archiveOutStream.close();
+        }catch (IOException e){
+            logger.info("Fail to Create Snapshot: " + e.getMessage());
+        }
     }
 }
