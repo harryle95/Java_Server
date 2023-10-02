@@ -13,6 +13,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.*;
@@ -25,7 +28,7 @@ public abstract class IntegrationTest {
     @BeforeEach
     void setUp() throws IOException, InterruptedException {
         try {
-            server = new AggregationServer("4567".split(" "));
+            server = new AggregationServer(4567);
             retries = 0;
             Runnable task = new StartServer(server);
             new Thread(task).start();
@@ -148,14 +151,14 @@ class OneGetOneContentTest extends IntegrationTest {
         assertThrows(RuntimeException.class, () -> GETClient.main(("127.0.0.1:4567 A0" +
                 " " +
                 "A1").split(" ")));
-        assertTrue(server.isUp);
+        assertTrue(server.isUp());
     }
 
     @Test
     void testClientPrematureClosingDoesNotShutDownServer() throws IOException {
         GETClient client = GETClient.from_args("127.0.0.1:4567 A0".split(" "));
         client.close();
-        assertTrue(server.isUp);
+        assertTrue(server.isUp());
     }
 
     @Test
@@ -168,14 +171,14 @@ class OneGetOneContentTest extends IntegrationTest {
     @Test
     void testServerCloseDoesCloseSocket() throws IOException {
         server.close();
-        assertFalse(server.isUp);
+        assertFalse(server.isUp());
     }
 
     @Test
     void testServerHandleMultipleGETClients() throws IOException {
         GETClient.main("127.0.0.1:4567 A0".split(" "));
         GETClient.main("127.0.0.1:4567 A1".split(" "));
-        assertTrue(server.isUp);
+        assertTrue(server.isUp());
     }
 
     @Test
@@ -439,7 +442,7 @@ class MultipleSerialPUTTest extends IntegrationTest {
     }
 
     @Test
-    void testAllFilesRemovedSteadyState() throws InterruptedException {
+    void testAllFilesRemovedSteadyState4Files() throws InterruptedException {
         server.setWAIT_TIME(1);
         Runnable task1 = () -> {
             try {
@@ -478,7 +481,31 @@ class MultipleSerialPUTTest extends IntegrationTest {
         new Thread(task3).start();
         new Thread(task4).start();
 
-        Thread.sleep(1000);
+        Thread.sleep(50);
+        assertTrue(server.getArchive().get("/127.0.0.1").isEmpty());
+    }
+
+    @Test
+    void testAllFilesRemovedSteadStateAllFiles() throws InterruptedException {
+        server.setWAIT_TIME(1);
+        List<Runnable> taskList = new ArrayList<>();
+        for (String file : fileNames) {
+            taskList.add(() -> {
+                try {
+                    ContentServer.main(("127.0.0.1:4567 " + file).split(" "));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        }
+        try (
+                ExecutorService executor = Executors.newCachedThreadPool();
+        ){
+            for (Runnable task: taskList){
+                executor.submit(task);
+            }
+        }
+        Thread.sleep(50);
         assertTrue(server.getArchive().get("/127.0.0.1").isEmpty());
     }
 
