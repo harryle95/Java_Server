@@ -2,33 +2,10 @@ package utility;
 
 
 public class FileMetadata {
-    public String getRemoteIP() {
-        return remoteIP;
-    }
-
-    public void setRemoteIP(String remoteIP) {
-        this.remoteIP = remoteIP;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
-    public String getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
-    }
-
     private String remoteIP;
     private String fileName;
     private String timestamp;
+
 
     /**
      * Store PUT message metadata.
@@ -43,5 +20,17 @@ public class FileMetadata {
         this.remoteIP = remoteIP;
         this.fileName = fileName;
         this.timestamp = timestamp;
+    }
+
+    public String getRemoteIP() {
+        return remoteIP;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public String getTimestamp() {
+        return timestamp;
     }
 }
