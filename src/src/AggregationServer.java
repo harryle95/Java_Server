@@ -4,21 +4,17 @@ import handlers.PriorityRunnableFuture;
 import handlers.PriorityRunnableFutureComparator;
 import handlers.RequestHandler;
 import utility.FileMetadata;
-import utility.LamportClock;
 import utility.ServerSnapshot;
+import utility.SocketServer;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.*;
-import java.util.logging.Logger;
 
-//TODO - Add HeartBeat/HealthCheck Runnable
-public class AggregationServer {
-    private final Logger logger;
+public class AggregationServer extends SocketServer {
     private final ConcurrentMap<String, String> database;
     private final ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<String,
             String>>> archive;
@@ -35,19 +31,16 @@ public class AggregationServer {
     private final ServerSnapshot serverSnapshot; // Server snapshot service
 
     // incoming requests
-    private final int POOL_SIZE = 20;
-    private final LamportClock clock;
-    public boolean isUp;
-    private int FRESH_PERIOD_COUNT = 20; // how many updates until the current is no longer fresh
-    private int WAIT_TIME = 30000; // how long to wait until the cleanup task - 30 seconds
-    private final int BACKUP_TIME = 15; // time between auto backup - default 15 minutes
-    private ServerSocket serverSocket;
+    private final int POOL_SIZE = Integer.parseInt(config.get("POOL_SIZE", "20"));
+    private int FRESH_PERIOD_COUNT = Integer.parseInt(config.get("FRESH_PERIOD_COUNT", "20")); // how many updates until the current is no longer fresh
+    private int WAIT_TIME = Integer.parseInt(config.get("WAIT_TIME", "30000")); // how long to wait until the cleanup task - 30 seconds
+    private final int BACKUP_TIME = Integer.parseInt(config.get("BACKUP_TIME", "15")); // time between auto backup - default 15 minutes
 
-    public AggregationServer(String[] argv) throws IOException, ClassNotFoundException {
-        logger = Logger.getLogger(this.getClass().getName());
-        int port = getPort(argv);
-        isUp = true;
-        serverSnapshot = new ServerSnapshot();
+    public AggregationServer(int port) throws IOException, ClassNotFoundException {
+        super(port);
+        serverSnapshot = new ServerSnapshot(
+                config.get("databaseDir", "src/backups/database"),
+                config.get("archiveDir", "src/backups/archive"));
         database = serverSnapshot.getDatabase();
         archive = serverSnapshot.getArchive();
         connectionHandlerPool = Executors.newCachedThreadPool();
@@ -66,26 +59,14 @@ public class AggregationServer {
                         ((RequestHandler) callable).getPriority());
             }
         };
-
-        clock = new LamportClock();
-        run(port);
+        run();
     }
 
-    public static int getPort(String[] args) {
-        int port;
-        if (args.length == 1) {
-            port = Integer.parseInt(args[0]);
-        } else if (args.length == 0) {
-            port = 4567;
-        } else {
-            throw new RuntimeException("Usage: AggregationServer [port].");
-        }
-        return port;
-    }
 
     @IgnoreCoverage
     public static void main(String[] args) throws IOException, ClassNotFoundException {
-        AggregationServer server = new AggregationServer(args);
+        int port = getPort(args);
+        AggregationServer server = new AggregationServer(port);
         server.start();
         server.close();
     }
@@ -108,39 +89,36 @@ public class AggregationServer {
         return archive;
     }
 
-    public void run(int port) throws IOException {
-        serverSocket = new ServerSocket(port);
-        serverSocket.setReuseAddress(true);
-        logger.info("Server listens to port " + port);
+
+    @Override
+    protected void pre_start_hook() {
+        super.pre_start_hook();
+        schedulePool.scheduleWithFixedDelay(serverSnapshot::createSnapShot, BACKUP_TIME, BACKUP_TIME, TimeUnit.MINUTES);
     }
 
-    public void start() throws IOException {
-        // Backup Pool Create Backup Snapshot
-        schedulePool.scheduleWithFixedDelay(()->{
-            try {
-                serverSnapshot.createSnapShot();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }, BACKUP_TIME, BACKUP_TIME, TimeUnit.MINUTES);
-        while (true) {
-            Socket clientSocket = serverSocket.accept();
-            logger.info("Create a new client handling socket at " + clientSocket.getLocalSocketAddress());
-            // Connection Pool listen for incoming requests
-            connectionHandlerPool.execute(new ConnectionHandler(
-                    clientSocket,
-                    new BufferedReader(new InputStreamReader(clientSocket.getInputStream())),
-                    new PrintWriter(clientSocket.getOutputStream(), true),
-                    clock, database, archive, requestHandlerPool, updateQueue,
-                    schedulePool, FRESH_PERIOD_COUNT, WAIT_TIME));
-        }
+    @Override
+    protected void start_hook() throws IOException {
+        super.start_hook();
+        Socket clientSocket = serverSocket.accept();
+        logger.info("Create a new client handling socket at " + clientSocket.getLocalSocketAddress());
+        // Connection Pool listen for incoming requests
+        connectionHandlerPool.execute(new ConnectionHandler(
+                clientSocket,
+                new BufferedReader(new InputStreamReader(clientSocket.getInputStream())),
+                new PrintWriter(clientSocket.getOutputStream(), true),
+                clock, database, archive, requestHandlerPool, updateQueue,
+                schedulePool, FRESH_PERIOD_COUNT, WAIT_TIME));
     }
 
-    public void close() throws IOException {
-        logger.info("Closing Server");
-        serverSocket.close();
-        logger.info("Server is closed");
-        isUp = false;
+    @Override
+    protected void pre_close_hook(){
+        super.pre_close_hook();
+        logger.info("Closing agg server connection handler pool: " + connectionHandlerPool.isTerminated());
+        connectionHandlerPool.close();
+        logger.info("Closing agg server schedule pool");
+        schedulePool.close();
+        logger.info("Closing agg server request pool");
+        requestHandlerPool.close();
     }
 }
 

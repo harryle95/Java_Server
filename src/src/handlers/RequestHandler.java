@@ -3,8 +3,8 @@ package handlers;
 import utility.FileMetadata;
 import utility.http.HTTPRequest;
 import utility.http.HTTPResponse;
-import utility.json.Parser;
-import utility.json.WeatherData;
+import utility.weatherJson.Parser;
+import utility.weatherJson.WeatherData;
 
 import java.util.Map;
 import java.util.concurrent.Callable;

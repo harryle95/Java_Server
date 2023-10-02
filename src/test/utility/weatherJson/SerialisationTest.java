@@ -1,4 +1,4 @@
-package utility.json;
+package utility.weatherJson;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,11 +29,11 @@ public class SerialisationTest {
 
     @Test
     void testSerialising() throws IOException, ClassNotFoundException {
-        FileOutputStream fout = new FileOutputStream("src/test/utility/json/resources/testBackUp");
+        FileOutputStream fout = new FileOutputStream("src/test/utility/weatherJson/resources/testBackUp");
         ObjectOutputStream out = new ObjectOutputStream(fout);
         out.writeObject(stringMap);
         out.close();
-        FileInputStream fis = new FileInputStream("src/test/utility/json/resources/testBackUp");
+        FileInputStream fis = new FileInputStream("src/test/utility/weatherJson/resources/testBackUp");
         ObjectInputStream in = new ObjectInputStream(fis);
         Map<String, Map<String, Map<String, String>>> backup = (Map<String, Map<String, Map<String, String>>>) in.readObject();
         Assertions.assertEquals(stringMap, backup);

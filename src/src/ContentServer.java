@@ -3,7 +3,7 @@ import utility.domain.ContentServerInformation;
 import utility.domain.ContentServerParser;
 import utility.http.HTTPRequest;
 import utility.http.HTTPResponse;
-import utility.json.Parser;
+import utility.weatherJson.Parser;
 
 import java.io.BufferedReader;
 import java.io.IOException;

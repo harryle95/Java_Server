@@ -1,4 +1,4 @@
-package utility.json;
+package utility.weatherJson;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -17,7 +17,7 @@ class ParserTest {
 
     @BeforeEach
     void initPath() {
-        workDir = Path.of("", "src/test/utility/json/resources");
+        workDir = Path.of("", "src/test/utility/weatherJson/resources");
     }
 
     @BeforeEach

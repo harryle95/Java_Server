@@ -16,9 +16,9 @@ public class SocketClient extends SocketCommunicator {
         this.MAX_RETRY = MAX_RETRY;
     }
 
-    private int SO_TIMEOUT = 5000;
+    private int SO_TIMEOUT = Integer.parseInt(config.get("SO_TIMEOUT", "5000"));
 
-    private int MAX_RETRY = 5;
+    private int MAX_RETRY = Integer.parseInt(config.get("MAX_RETRY", "5"));
 
     public SocketClient(
             Socket clientSocket,

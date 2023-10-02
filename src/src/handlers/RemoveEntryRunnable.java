@@ -23,13 +23,16 @@ public class RemoveEntryRunnable implements Runnable {
         String popIP = popData.remoteIP();
         String popFileName = popData.fileName();
         String popTS = popData.timestamp();
+        logger.info("Begin removing entry at TS: " + popTS + " : " + popIP + "/" + popFileName);
         if (archive.containsKey(popIP) && archive.get(popIP).containsKey(popFileName)) {
             String archiveTS = archive.get(popIP).get(popFileName).get("Timestamp");
             // If old data hasn't been updated since -> Remove
             if (popTS.equals(archiveTS)) {
-                logger.info("Remove archive entry at: " + popIP + "/" + popFileName);
+                logger.info("Success: Remove archive entry at: " + popIP + "/" + popFileName);
                 archive.get(popIP).remove(popFileName);
-            }
-        }
+            } else
+                logger.info("Failed: Entry was updated: " + archiveTS + " : " + popIP + "/" + popFileName);
+        } else
+            logger.info("Failed: Entry was already removed: " + popIP + "/" + popFileName);
     }
 }

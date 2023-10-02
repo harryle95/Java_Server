@@ -12,12 +12,29 @@ public class ServerSnapshot {
     private final ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<String,
             String>>> archive;
 
-    public ServerSnapshot() throws IOException, ClassNotFoundException {
+    public File getDatabaseDir() {
+        return new File(databaseDir);
+    }
+
+    public File getArchiveDir() {
+        return new File(archiveDir);
+    }
+
+    private final String databaseDir;
+
+    private final String archiveDir;
+
+
+    public ServerSnapshot(
+            String databaseDir,
+            String archiveDir
+    ) throws IOException, ClassNotFoundException {
+        this.databaseDir = databaseDir;
+        this.archiveDir = archiveDir;
         logger = Logger.getLogger(this.getClass().getName());
-        if (new File("src/backups/archive").exists()) {
+        if (getArchiveDir().exists()) {
             logger.info("Restoring archive from backup");
-            FileInputStream archiveInStream = new FileInputStream("src/backups" +
-                    "/archive");
+            FileInputStream archiveInStream = new FileInputStream(archiveDir);
             ObjectInputStream archiveIn = new ObjectInputStream(archiveInStream);
             archive = (ConcurrentMap<String, ConcurrentMap<String,
                     ConcurrentMap<String, String>>>) archiveIn.readObject();
@@ -28,9 +45,9 @@ public class ServerSnapshot {
             archive = new ConcurrentHashMap<>();
         }
 
-        if (new File("src/backups/database").exists()) {
+        if (getDatabaseDir().exists()) {
             logger.info("Restoring database from backup");
-            FileInputStream dbInStream = new FileInputStream("src/backups/database");
+            FileInputStream dbInStream = new FileInputStream(databaseDir);
             ObjectInputStream dbIn = new ObjectInputStream(dbInStream);
             database = (ConcurrentMap<String, String>) dbIn.readObject();
             dbIn.close();
@@ -50,19 +67,31 @@ public class ServerSnapshot {
         return archive;
     }
 
-    public void createSnapShot() throws IOException {
-        logger.info("Creating database snapshot");
-        FileOutputStream dbOutStream = new FileOutputStream("src/backups/database");
-        ObjectOutputStream dbOutObj = new ObjectOutputStream(dbOutStream);
-        dbOutObj.writeObject(database);
+    public void createSnapShot() {
+        createSnapShot(databaseDir, archiveDir);
+    }
 
-        dbOutObj.close();
-        dbOutStream.close();
+    private void writeObject(OutputStream outputStream, Serializable obj) throws IOException {
+        ObjectOutputStream objOutStream = new ObjectOutputStream(outputStream);
+        objOutStream.writeObject(obj);
+        objOutStream.close();
+    }
 
-        FileOutputStream archiveOutStream = new FileOutputStream("src/backups/archive");
-        ObjectOutputStream archiveOutObj = new ObjectOutputStream(archiveOutStream);
-        archiveOutObj.writeObject(archive);
-        archiveOutObj.close();
-        archiveOutStream.close();
+    private void createFileSnapShot(String path, Serializable obj) throws IOException {
+        FileOutputStream fileOutputStream = new FileOutputStream(path);
+        writeObject(fileOutputStream, obj);
+        fileOutputStream.close();
+    }
+
+
+    public void createSnapShot(String databaseDir, String archiveDir) {
+        try {
+            logger.info("Creating database snapshot");
+            createFileSnapShot(databaseDir, (Serializable) database);
+            createFileSnapShot(archiveDir, (Serializable) archive);
+        } catch (IOException e) {
+            logger.info("Fail to Create Snapshot: " + e.getMessage());
+            throw new RuntimeException(e);
+        }
     }
 }
