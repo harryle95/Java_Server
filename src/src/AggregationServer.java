@@ -108,13 +108,13 @@ public class AggregationServer extends SocketServer {
         }
     }
 
-//    @IgnoreCoverage
-//    public void close() throws IOException {
-//        connectionHandlerPool.close();
-//        schedulePool.close();
-//        requestHandlerPool.close();
-//        super.close();
-//    }
+    @IgnoreCoverage
+    public void close() throws IOException {
+        connectionHandlerPool.close();
+        schedulePool.close();
+        requestHandlerPool.close();
+        super.close();
+    }
 
 }
 
