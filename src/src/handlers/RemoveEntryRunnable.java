@@ -20,9 +20,9 @@ public class RemoveEntryRunnable implements Runnable {
 
     @Override
     public void run() {
-        String popIP = popData.remoteIP();
-        String popFileName = popData.fileName();
-        String popTS = popData.timestamp();
+        String popIP = popData.getRemoteIP();
+        String popFileName = popData.getFileName();
+        String popTS = popData.getTimestamp();
         logger.info("Begin removing entry at TS: " + popTS + " : " + popIP + "/" + popFileName);
         if (archive.containsKey(popIP) && archive.get(popIP).containsKey(popFileName)) {
             String archiveTS = archive.get(popIP).get(popFileName).get("Timestamp");

@@ -83,7 +83,7 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
             }
             // Submit a cleanup task if request is PUT
             if (metadataPUT != null) {
-                logger.info("Schedule a job to remove entry: " + metadataPUT.remoteIP() + "/" + metadataPUT.fileName() + " after " + WAIT_TIME);
+                logger.info("Schedule a job to remove entry: " + metadataPUT.getRemoteIP() + "/" + metadataPUT.getFileName() + " after " + WAIT_TIME);
                 Runnable removeArchiveData = new RemoveEntryRunnable(metadataPUT, archive);
                 schedulePool.schedule(removeArchiveData, WAIT_TIME, TimeUnit.MILLISECONDS);
             }

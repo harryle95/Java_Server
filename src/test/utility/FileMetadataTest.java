@@ -13,8 +13,8 @@ class FileMetadataTest {
         String file = "data.json";
         String ts = "15";
         FileMetadata metadata = new FileMetadata(host, file, ts);
-        assertEquals(host, metadata.remoteIP());
-        assertEquals(file, metadata.fileName());
-        assertEquals(ts, metadata.timestamp());
+        assertEquals(host, metadata.getRemoteIP());
+        assertEquals(file, metadata.getFileName());
+        assertEquals(ts, metadata.getTimestamp());
     }
 }
