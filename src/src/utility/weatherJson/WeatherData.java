@@ -1,4 +1,4 @@
-package utility.json;
+package utility.weatherJson;
 
 import java.util.*;
 

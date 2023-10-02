@@ -1,4 +1,4 @@
-package utility.json;
+package utility.weatherJson;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
