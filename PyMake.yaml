@@ -108,14 +108,25 @@ agg_server:
     #!/usr/bin/bash
     java $(logging) -cp $(OUTDIR) AggregationServer $(port)
 
+load_balancer:
+  var:
+    basic:
+      OUTDIR: out/production/Java_Server
+      port: 4567
+    option:
+      logging: -Djava.util.logging.config.file=src/config/logging.properties
+  cmd: |
+    #!/usr/bin/bash
+    java $(logging) -cp $(OUTDIR) LoadBalancer $(port)
+
 
 get_client:
   var:
     basic:
+      stationID: ""
       OUTDIR: out/production/Java_Server
       hostname: 127.0.0.1
       port: 4567
-      stationID: ""
     option:
       logging: -Djava.util.logging.config.file=src/config/logging.properties
   cmd: |
@@ -130,7 +141,7 @@ content_server:
       OUTDIR: out/production/Java_Server
       hostname: 127.0.0.1
       port: 4567
-      rootdir: src/resources
+      rootdir: src/resources/WeatherData
       fileName: SingleEntry/Adelaide_2023-07-15_16-00-00.txt
     option:
       logging: -Djava.util.logging.config.file=src/config/logging.properties
