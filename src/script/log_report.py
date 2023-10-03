@@ -1,5 +1,4 @@
 import argparse
-import dataclasses
 import datetime
 import glob
 import sys
@@ -10,18 +9,18 @@ from typing import List
 from dateutil import parser
 
 
-@dataclasses.dataclass
 class Record:
-    date: datetime.datetime
-    millis: int
-    nanos: int
-    sequence: int
-    logger: str
-    level: str
-    class_name: str
-    method: str
-    thread: int
-    message: str
+    def __init__(self, date, millis, nanos, sequence, logger, level, class_name, method, thread, message):
+        self.date = date
+        self.millis = millis
+        self.nanos = nanos
+        self.sequence = sequence
+        self.logger = logger
+        self.level = level
+        self.class_name = class_name
+        self.method = method
+        self.thread = thread
+        self.message = message
 
     def __str__(self):
         methodname = self.logger+ "." + self.method
@@ -29,7 +28,7 @@ class Record:
                 f"{self.thread:<3}|\t{self.level}:{self.message}")
 
     @staticmethod
-    def from_element(element: Element) -> "Record":
+    def from_element(element):
         return Record(
             parser.parse(element.find("date").text),
             int(element.find("millis").text),
@@ -44,7 +43,7 @@ class Record:
         )
 
     @staticmethod
-    def from_file(file_path: Path) -> List["Record"]:
+    def from_file(file_path):
         tree = ET.parse(file_path)
         elements = tree.findall("record")
         records = []
@@ -53,7 +52,7 @@ class Record:
         return records
 
     @staticmethod
-    def from_dir(dir_path: Path) -> List["Record"]:
+    def from_dir(dir_path):
         file_list = glob.glob("*.log.*", root_dir=dir_path)
         records = []
         for file in file_list:
@@ -61,7 +60,7 @@ class Record:
         return sorted(records, key=lambda item: item.millis)
 
     @staticmethod
-    def to_string(records: List["Record"]) -> str:
+    def to_string(records):
         return "\n".join([str(item) for item in records])
 
 
