@@ -11,6 +11,7 @@ LOGGING_FLAG = -Djava.util.logging.config.file=src/config/logging.properties
 
 make_dirs:
 	mkdir -p $(OUTDIR) $(TESTOUTDIR)
+	mkdir -p src/log
 
 compile_src: make_dirs
 	find $(CLASSDIR) -name "*.java" > sources.txt
