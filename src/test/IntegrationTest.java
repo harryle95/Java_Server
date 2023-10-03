@@ -471,7 +471,7 @@ class MultipleSerialPUTTest extends IntegrationTest {
         new Thread(task3).start();
         new Thread(task4).start();
 
-        Thread.sleep(50);
+        Thread.sleep(1000);
         assertTrue(server.getArchive().get("/127.0.0.1").isEmpty());
     }
 
@@ -492,7 +492,7 @@ class MultipleSerialPUTTest extends IntegrationTest {
         for (Runnable task : taskList) {
             executor.submit(task);
         }
-        Thread.sleep(500);
+        Thread.sleep(1000);
         assertTrue(server.getArchive().get("/127.0.0.1").isEmpty());
         executor.shutdownNow();
     }

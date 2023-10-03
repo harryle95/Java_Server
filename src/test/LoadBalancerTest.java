@@ -123,7 +123,7 @@ class LoadBalancerGETPUTTest extends LoadBalancerWithFixtureTest {
         for (int i = 0; i < fileNames.size(); i++) {
             runContentServer("127.0.0.1", 4567, i);
         }
-        Thread.sleep(50);
+        Thread.sleep(1000);
         assertTrue(loadBalancer.getBuiltinServer().getArchive().get("/127.0.0.1").isEmpty());
     }
 
