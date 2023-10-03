@@ -28,6 +28,8 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
     private final int FRESH_COUNT;
     private final int WAIT_TIME;
 
+    private ScheduledFuture<?> removeEntryTask;
+
     public ConnectionHandler(
             Socket socket,
             BufferedReader in,
@@ -37,7 +39,8 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
             ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<String, String>>> archive,
             ExecutorService requestHandlerPool,
             LinkedBlockingQueue<FileMetadata> updateQueue,
-            ScheduledExecutorService schedulePool, int freshcount, int waitTime) {
+            ScheduledExecutorService schedulePool, int freshcount, int waitTime,
+            ScheduledFuture<?> removeEntryFuture) {
         super(socket, clock, out, in, "server");
         this.database = database;
         this.archive = archive;
@@ -46,6 +49,7 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
         this.schedulePool = schedulePool;
         FRESH_COUNT = freshcount;
         this.WAIT_TIME = waitTime;
+        this.removeEntryTask = removeEntryFuture;
     }
 
     @IgnoreCoverage
@@ -85,7 +89,7 @@ public class ConnectionHandler extends SocketCommunicator implements Runnable {
             if (metadataPUT != null) {
                 logger.info("Schedule a job to remove entry: " + metadataPUT.getRemoteIP() + "/" + metadataPUT.getFileName() + " after " + WAIT_TIME);
                 Runnable removeArchiveData = new RemoveEntryRunnable(metadataPUT, archive);
-                schedulePool.schedule(removeArchiveData, WAIT_TIME, TimeUnit.MILLISECONDS);
+                removeEntryTask = schedulePool.schedule(removeArchiveData, WAIT_TIME, TimeUnit.MILLISECONDS);
             }
             close();
         } catch (IOException | ExecutionException | InterruptedException e) {

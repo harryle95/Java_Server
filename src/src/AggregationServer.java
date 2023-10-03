@@ -23,18 +23,18 @@ public class AggregationServer extends SocketServer {
     private final ExecutorService requestHandlerPool; // Thread pool to handle request
     // archive data based on order of update
     private final ScheduledExecutorService schedulePool; // Thread pool to execute
-
-    public ServerSnapshot getServerSnapshot() {
-        return serverSnapshot;
-    }
-
     private final ServerSnapshot serverSnapshot; // Server snapshot service
-
     // incoming requests
     private final int POOL_SIZE = Integer.parseInt(config.get("POOL_SIZE", "20"));
-    private int FRESH_PERIOD_COUNT = Integer.parseInt(config.get("FRESH_PERIOD_COUNT", "20")); // how many updates until the current is no longer fresh
-    private int WAIT_TIME = Integer.parseInt(config.get("WAIT_TIME", "30000")); // how long to wait until the cleanup task - 30 seconds
-    private final int BACKUP_TIME = Integer.parseInt(config.get("BACKUP_TIME", "15")); // time between auto backup - default 15 minutes
+    // how long to wait until the cleanup task - 30 seconds
+    private final int BACKUP_TIME =
+            Integer.parseInt(config.get("BACKUP_TIME", "15")); // time between auto
+    ScheduledFuture<?> createSnapShotFuture;
+
+    ScheduledFuture<?> removeEntryFuture;
+    private int FRESH_PERIOD_COUNT = Integer.parseInt(config.get("FRESH_PERIOD_COUNT"
+            , "20")); // how many updates until the current is no longer fresh
+    private int WAIT_TIME = Integer.parseInt(config.get("WAIT_TIME", "30000")); //
 
     public AggregationServer(int port) throws IOException, ClassNotFoundException {
         super(port);
@@ -61,7 +61,7 @@ public class AggregationServer extends SocketServer {
         };
         run();
     }
-
+    // backup - default 15 minutes
 
     @IgnoreCoverage
     public static void main(String[] args) throws IOException, ClassNotFoundException {
@@ -69,6 +69,10 @@ public class AggregationServer extends SocketServer {
         AggregationServer server = new AggregationServer(port);
         server.start();
         server.close();
+    }
+
+    public ServerSnapshot getServerSnapshot() {
+        return serverSnapshot;
     }
 
     public void setFRESH_PERIOD_COUNT(int FRESH_PERIOD_COUNT) {
@@ -93,11 +97,13 @@ public class AggregationServer extends SocketServer {
     @Override
     protected void pre_start_hook() {
         super.pre_start_hook();
-        schedulePool.scheduleWithFixedDelay(serverSnapshot::createSnapShot, BACKUP_TIME, BACKUP_TIME, TimeUnit.MINUTES);
+        createSnapShotFuture =
+                schedulePool.scheduleWithFixedDelay(serverSnapshot::createSnapShot,
+                        BACKUP_TIME, BACKUP_TIME, TimeUnit.MINUTES);
     }
 
     @Override
-    protected void start_hook(){
+    protected void start_hook() {
         super.start_hook();
         try {
             Socket clientSocket = serverSocket.accept();
@@ -108,16 +114,20 @@ public class AggregationServer extends SocketServer {
                     new BufferedReader(new InputStreamReader(clientSocket.getInputStream())),
                     new PrintWriter(clientSocket.getOutputStream(), true),
                     clock, database, archive, requestHandlerPool, updateQueue,
-                    schedulePool, FRESH_PERIOD_COUNT, WAIT_TIME));
-        }catch (IOException e){
+                    schedulePool, FRESH_PERIOD_COUNT, WAIT_TIME, removeEntryFuture));
+        } catch (IOException e) {
             logger.info("ERROR: start_hook for AggregationServer: " + e);
             setStartBreakSignal(true);
         }
     }
 
     @Override
-    protected void pre_close_hook(){
+    protected void pre_close_hook() {
         super.pre_close_hook();
+        if (createSnapShotFuture != null)
+            createSnapShotFuture.cancel(false);
+        if (removeEntryFuture != null)
+            removeEntryFuture.cancel(false);
         logger.info("Closing agg server connection handler pool: " + connectionHandlerPool.isTerminated());
         connectionHandlerPool.shutdownNow();
         logger.info("Closing agg server schedule pool");
