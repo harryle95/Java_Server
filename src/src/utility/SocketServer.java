@@ -7,23 +7,18 @@ import java.net.ServerSocket;
 import java.util.logging.Logger;
 
 public abstract class SocketServer {
-    protected final Logger logger = Logger.getLogger(this.getClass().getName());
     public final int port;
-
+    protected final Logger logger = Logger.getLogger(this.getClass().getName());
     protected final LamportClock clock;
     protected ServerSocket serverSocket;
-
-    public Config getConfig() {
-        return config;
-    }
-
     protected Config config = new Config("src/config/server.properties");
+    protected boolean isUp = true;
 
-    public boolean isUp() {
-        return isUp;
+    public void setStartBreakSignal(boolean startBreakSignal) {
+        this.startBreakSignal = startBreakSignal;
     }
 
-    protected boolean isUp = true;
+    private boolean startBreakSignal = false;
 
     public SocketServer(int port) {
         this.port = port;
@@ -43,6 +38,13 @@ public abstract class SocketServer {
         return port;
     }
 
+    public Config getConfig() {
+        return config;
+    }
+
+    public boolean isUp() {
+        return isUp;
+    }
 
     public void run() throws IOException {
         serverSocket = new ServerSocket(port);
@@ -53,7 +55,7 @@ public abstract class SocketServer {
     protected void pre_start_hook() {
     }
 
-    protected void start_hook() throws IOException {
+    protected void start_hook() {
     }
 
 
@@ -63,18 +65,24 @@ public abstract class SocketServer {
     protected void post_close_hook() {
     }
 
-    public void start() throws IOException {
+    public void start() {
         pre_start_hook();
         while (true) {
             start_hook();
+            if (startBreakSignal)
+                break;
         }
     }
 
-    public void close() throws IOException {
+    public void close() {
         logger.info("Initiating shutdown procedure " + this.getClass().getName());
         pre_close_hook();
         logger.info("Closing Server " + this.getClass().getName());
-        serverSocket.close();
+        try {
+            serverSocket.close();
+        } catch (IOException e) {
+            logger.info("ERROR: fails to close server socket: " + e);
+        }
         logger.info(this.getClass().getName() + " is closed");
         isUp = false;
         post_close_hook();

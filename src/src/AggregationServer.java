@@ -97,28 +97,33 @@ public class AggregationServer extends SocketServer {
     }
 
     @Override
-    protected void start_hook() throws IOException {
+    protected void start_hook(){
         super.start_hook();
-        Socket clientSocket = serverSocket.accept();
-        logger.info("Create a new client handling socket at " + clientSocket.getLocalSocketAddress());
-        // Connection Pool listen for incoming requests
-        connectionHandlerPool.execute(new ConnectionHandler(
-                clientSocket,
-                new BufferedReader(new InputStreamReader(clientSocket.getInputStream())),
-                new PrintWriter(clientSocket.getOutputStream(), true),
-                clock, database, archive, requestHandlerPool, updateQueue,
-                schedulePool, FRESH_PERIOD_COUNT, WAIT_TIME));
+        try {
+            Socket clientSocket = serverSocket.accept();
+            logger.info("Create a new client handling socket at " + clientSocket.getLocalSocketAddress());
+            // Connection Pool listen for incoming requests
+            connectionHandlerPool.execute(new ConnectionHandler(
+                    clientSocket,
+                    new BufferedReader(new InputStreamReader(clientSocket.getInputStream())),
+                    new PrintWriter(clientSocket.getOutputStream(), true),
+                    clock, database, archive, requestHandlerPool, updateQueue,
+                    schedulePool, FRESH_PERIOD_COUNT, WAIT_TIME));
+        }catch (IOException e){
+            logger.info("ERROR: start_hook for AggregationServer: " + e);
+            setStartBreakSignal(true);
+        }
     }
 
     @Override
     protected void pre_close_hook(){
         super.pre_close_hook();
         logger.info("Closing agg server connection handler pool: " + connectionHandlerPool.isTerminated());
-        connectionHandlerPool.shutdown();
+        connectionHandlerPool.shutdownNow();
         logger.info("Closing agg server schedule pool");
-        schedulePool.shutdown();
+        schedulePool.shutdownNow();
         logger.info("Closing agg server request pool");
-        requestHandlerPool.shutdown();
+        requestHandlerPool.shutdownNow();
     }
 }
 

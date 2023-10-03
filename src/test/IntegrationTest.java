@@ -46,10 +46,7 @@ public abstract class IntegrationTest {
 
     @AfterEach
     void shutDown() {
-        try {
-            server.close();
-        } catch (IOException e) {
-        }
+        server.close();
     }
 
 
@@ -62,10 +59,7 @@ public abstract class IntegrationTest {
 
         @Override
         public void run() {
-            try {
-                server.start();
-            } catch (IOException e) {
-            }
+            server.start();
         }
     }
 }
@@ -596,5 +590,5 @@ class MultiplePUTWithCompositeDataTest extends IntegrationTest {
         assertEquals(server.getDatabase(), newSnapShot.getDatabase());
         assertEquals(server.getArchive(), newSnapShot.getArchive());
     }
-    
+
 }

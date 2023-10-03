@@ -29,10 +29,7 @@ class LoadBalancerTest {
     void setupHook() throws IOException, ClassNotFoundException {
         loadBalancer = new LoadBalancer(4567);
         new Thread(() -> {
-            try {
-                loadBalancer.start();
-            } catch (IOException e) {
-            }
+            loadBalancer.start();
         }).start();
     }
 
@@ -44,10 +41,7 @@ class LoadBalancerTest {
 
     @AfterEach
     void shutdown() {
-        try {
-            loadBalancer.close();
-        } catch (IOException e) {
-        }
+        loadBalancer.close();
     }
 }
 
@@ -179,10 +173,7 @@ class LoadBalancerUsePreSetFailOverServerTest extends LoadBalancerWithFixtureTes
     void setupHook() throws IOException, ClassNotFoundException {
         aggServer = new AggregationServer(4568);
         new Thread(() -> {
-            try {
-                aggServer.start();
-            } catch (IOException e) {
-            }
+            aggServer.start();
         }).start();
         super.setupHook();
         loadBalancer.addServer("127.0.0.1",4568);
@@ -214,9 +205,6 @@ class LoadBalancerUsePreSetFailOverServerTest extends LoadBalancerWithFixtureTes
     @AfterEach
     void shutdown() {
         super.shutdown();
-        try {
-            aggServer.close();
-        }catch (IOException e){
-        }
+        aggServer.close();
     }
 }

@@ -11,7 +11,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -19,27 +21,39 @@ import java.util.concurrent.TimeUnit;
 
 
 public class LoadBalancer extends SocketServer {
+    private final ScheduledExecutorService heartbeatPool =
+            Executors.newSingleThreadScheduledExecutor();
+    private final ExecutorService connectionPool = Executors.newCachedThreadPool();
+    private final int HEARTBEAT_SCHEDULE = Integer.parseInt(config.get(
+            "HEARTBEAT_SCHEDULE", "30000"));
+    private final List<ServerInfo> registry = new ArrayList<>();
     private int newPort;
+    private AggregationServer builtinServer;
+    private ServerInfo leader;
+
+    public LoadBalancer(int port) throws IOException {
+        super(port);
+        newPort = port + 1;
+        startBuiltInServer();
+        setLeader("127.0.0.1", newPort);
+        run();
+    }
+
+    @IgnoreCoverage
+    public static void main(String[] args) throws IOException {
+        int port = getPort(args);
+        SocketServer server = new LoadBalancer(port);
+        server.start();
+        server.close();
+    }
 
     public AggregationServer getBuiltinServer() {
         return builtinServer;
     }
 
-    private AggregationServer builtinServer;
-
-    private final ScheduledExecutorService heartbeatPool = Executors.newSingleThreadScheduledExecutor();
-
-    private final ExecutorService connectionPool = Executors.newCachedThreadPool();
-
-    private final int HEARTBEAT_SCHEDULE = Integer.parseInt(config.get("HEARTBEAT_SCHEDULE", "30000"));
-
-    private final List<ServerInfo> registry = new ArrayList<>();
-
     public ServerInfo getLeader() {
         return leader;
     }
-
-    private ServerInfo leader;
 
     public boolean contains(String hostname, int port) {
         return registry.contains(new ServerInfo(hostname, port));
@@ -60,7 +74,8 @@ public class LoadBalancer extends SocketServer {
                 return;
             }
         }
-        logger.info("Not connecting to external server, creating a self-managed server.");
+        logger.info("Not connecting to external server, creating a self-managed " +
+                    "server.");
         startBuiltInServer();
         setLeader("127.0.0.1", newPort);
     }
@@ -84,14 +99,6 @@ public class LoadBalancer extends SocketServer {
         }
     }
 
-    public LoadBalancer(int port) throws IOException {
-        super(port);
-        newPort = port + 1;
-        startBuiltInServer();
-        setLeader("127.0.0.1", newPort);
-        run();
-    }
-
     @IgnoreCoverage
     protected void pre_start_hook() {
         super.pre_start_hook();
@@ -100,40 +107,34 @@ public class LoadBalancer extends SocketServer {
                 try {
                     electLeader();
                 } catch (IOException e) {
-                    logger.info("Pre-Start-Hook fails for class LoadBalancer. Message: " + e);
+                    logger.info("Pre-Start-Hook fails for class LoadBalancer. " +
+                                "Message: " + e);
                 }
             }
         }, HEARTBEAT_SCHEDULE, HEARTBEAT_SCHEDULE, TimeUnit.MILLISECONDS);
     }
 
     @Override
-    protected void start_hook() throws IOException {
-        super.start_hook();
-        Socket clientSocket = serverSocket.accept();
-        connectionPool.execute(new ClientHandler(
-                clientSocket,
-                clock,
-                new PrintWriter(clientSocket.getOutputStream(), true),
-                new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))));
+    protected void start_hook() {
+        try {
+            super.start_hook();
+            Socket clientSocket = serverSocket.accept();
+            connectionPool.execute(new ClientHandler(
+                    clientSocket,
+                    clock,
+                    new PrintWriter(clientSocket.getOutputStream(), true),
+                    new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))));
+        } catch (IOException e) {
+            logger.info("ERROR: start_hook LoadBalancer error: " + e);
+            setStartBreakSignal(true);
+        }
     }
-
-    @IgnoreCoverage
-    public static void main(String[] args) throws IOException {
-        int port = getPort(args);
-        SocketServer server = new LoadBalancer(port);
-        server.start();
-        server.close();
-    }
-
 
     private void startBuiltInServer() {
         try {
             builtinServer = new AggregationServer(newPort);
             new Thread(() -> {
-                try {
-                    builtinServer.start();
-                } catch (IOException e) {
-                }
+                builtinServer.start();
             }).start();
             addServer("127.0.0.1", newPort);
         } catch (IOException | ClassNotFoundException e) {
@@ -142,9 +143,28 @@ public class LoadBalancer extends SocketServer {
         }
     }
 
+    @Override
+    protected void pre_close_hook() {
+        super.pre_close_hook();
+        logger.info("Closing load balancer connection pool");
+        connectionPool.shutdownNow();
+        logger.info("Closing load balancer heartbeat pool");
+        heartbeatPool.shutdownNow();
+        if (builtinServer != null && builtinServer.isUp())
+            builtinServer.close();
+    }
+
     @IgnoreCoverage
     public static class ServerInfo {
         private final String hostname;
+        private final int port;
+        private final int hashCode;
+
+        public ServerInfo(String hostname, int port) {
+            this.hostname = hostname;
+            this.port = port;
+            this.hashCode = Objects.hash(this.hostname, this.port);
+        }
 
         public String getHostname() {
             return hostname;
@@ -152,16 +172,6 @@ public class LoadBalancer extends SocketServer {
 
         public int getPort() {
             return port;
-        }
-
-        private final int port;
-
-        private final int hashCode;
-
-        public ServerInfo(String hostname, int port) {
-            this.hostname = hostname;
-            this.port = port;
-            this.hashCode = Objects.hash(this.hostname, this.port);
         }
 
         @Override
@@ -190,7 +200,9 @@ public class LoadBalancer extends SocketServer {
                 BufferedReader in
         ) throws IOException {
             super(clientSocket, clock, out, in, "server");
-            serverInterface = GETClient.from_args((leader.hostname + ":" + leader.port).split(" "));
+            serverInterface =
+                    GETClient.from_args((leader.hostname + ":" + leader.port).split(
+                            " "));
 
         }
 
@@ -198,11 +210,14 @@ public class LoadBalancer extends SocketServer {
         public void handleRequest(String request) {
             try {
                 serverInterface.send(HTTPRequest.fromMessage(request));
-                HTTPResponse response = HTTPResponse.fromMessage(serverInterface.receive());
+                HTTPResponse response =
+                        HTTPResponse.fromMessage(serverInterface.receive());
                 send(response);
             } catch (IOException e) {
                 logger.info("Error: server error.");
-                HTTPResponse response = new HTTPResponse("1.1").setStatusCode("500").setReasonPhrase("Internal Server Error");
+                HTTPResponse response =
+                        new HTTPResponse("1.1").setStatusCode("500").setReasonPhrase(
+                                "Internal Server Error");
                 send(response);
             }
         }
@@ -227,21 +242,6 @@ public class LoadBalancer extends SocketServer {
             } catch (IOException e) {
                 logger.info("ERROR: unable to close server socket");
             }
-        }
-    }
-
-    @Override
-    protected void pre_close_hook() {
-        super.pre_close_hook();
-        logger.info("Closing load balancer connection pool");
-        connectionPool.shutdown();
-        logger.info("Closing load balancer heartbeat pool");
-        heartbeatPool.shutdown();
-        try {
-            if (builtinServer != null && builtinServer.isUp())
-                builtinServer.close();
-        } catch (IOException e) {
-            logger.info("Error: unable to close builtinServer: " + e);
         }
     }
 }
