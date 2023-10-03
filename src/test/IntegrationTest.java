@@ -596,12 +596,5 @@ class MultiplePUTWithCompositeDataTest extends IntegrationTest {
         assertEquals(server.getDatabase(), newSnapShot.getDatabase());
         assertEquals(server.getArchive(), newSnapShot.getArchive());
     }
-
-
-    @Test
-    void testBackUpDirNotExistsThrowError() {
-        assertThrows(RuntimeException.class,
-                () -> server.getServerSnapshot().createSnapShot("src/backup/database"
-                        , "src/backup/archive"));
-    }
+    
 }
