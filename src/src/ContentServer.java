@@ -11,7 +11,9 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class ContentServer extends SocketClient {
     private final String fileName;
@@ -48,7 +50,7 @@ public class ContentServer extends SocketClient {
 
     private String getBody() throws IOException {
         Parser parser = new Parser();
-        parser.parseFile(Path.of(fileName));
+        parser.parseFile(Paths.get(fileName));
         return parser.toString();
     }
 

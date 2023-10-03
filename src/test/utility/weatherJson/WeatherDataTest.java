@@ -59,16 +59,14 @@ class WeatherDataTest {
     @ParameterizedTest
     @CsvSource({
             "'{\n\"id\": \"A0\",\n\"local_date_time_full\": \"123\"\n}', 123",
-            """
-                    '{
-                    "id": "A0",
-                    "local_date_time_full": "20230715160000"
-                    }', 20230715160000""",
-            """
-                    '{
-                    "id": "A0",
-                    "local_date_time_full": "20230715163000"
-                    }', 20230715163000""",
+            "'{\n" +
+            "\"id\": \"A0\",\n" +
+            "\"local_date_time_full\": \"20230715160000\"\n" +
+            "}', 20230715160000",
+            "'{\n" +
+            "\"id\": \"A0\",\n" +
+            "\"local_date_time_full\": \"20230715163000\"\n" +
+            "}', 20230715163000",
     })
     void getTS(String input, float expected) {
         parser.parseMessage(input);

@@ -8,7 +8,7 @@ import utility.weatherJson.Parser;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,10 +21,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public abstract class IntegrationTest {
     private final int MAX_RETRY = 5;
+    private final int DEFAULT_WAIT_TIME = 10;
     AggregationServer server;
     private int retries = 0;
-
-    private final int DEFAULT_WAIT_TIME = 10;
 
     @BeforeEach
     void setUp() throws IOException, InterruptedException {
@@ -80,64 +79,54 @@ class OneGetOneContentTest extends IntegrationTest {
     void testClientRequestingNotFoundID() throws IOException {
         GETClient client = GETClient.from_args("127.0.0.1:4567 A0".split(" "));
         client.run();
-        assertEquals("""
-                GET /A0 HTTP/1.1\r
-                Host: 127.0.0.1:4567\r
-                Accept: application/json\r
-                Lamport-Clock: 1\r
-                \r
-                """, client.sentMessages.get(0));
-        assertEquals("""
-                HTTP/1.1 404 Not Found\r
-                Content-Type: application/json\r
-                Lamport-Clock: 3\r
-                \r
-                """, client.receivedMessages.get(0));
+        assertEquals("GET /A0 HTTP/1.1\r\n" +
+                     "Host: 127.0.0.1:4567\r\n" +
+                     "Accept: application/json\r\n" +
+                     "Lamport-Clock: 1\r\n" +
+                     "\r\n", client.sentMessages.get(0));
+        assertEquals("HTTP/1.1 404 Not Found\r\n" +
+                     "Content-Type: application/json\r\n" +
+                     "Lamport-Clock: 3\r\n" +
+                     "\r\n", client.receivedMessages.get(0));
     }
 
     @Test
     void testClientRequestingBlank() throws IOException {
         GETClient client = GETClient.from_args("127.0.0.1:4567".split(" "));
         client.run();
-        assertEquals("""
-                GET / HTTP/1.1\r
-                Host: 127.0.0.1:4567\r
-                Accept: application/json\r
-                Lamport-Clock: 1\r
-                \r
-                """, client.sentMessages.get(0));
-        assertEquals("""
-                HTTP/1.1 204 No Content\r
-                Content-Type: application/json\r
-                Lamport-Clock: 3\r
-                \r
-                """, client.receivedMessages.get(0));
+        assertEquals("GET / HTTP/1.1\r\n" +
+                     "Host: 127.0.0.1:4567\r\n" +
+                     "Accept: application/json\r\n" +
+                     "Lamport-Clock: 1\r\n" +
+                     "\r\n", client.sentMessages.get(0));
+        assertEquals("HTTP/1.1 204 No Content\r\n" +
+                     "Content-Type: application/json\r\n" +
+                     "Lamport-Clock: 3\r\n" +
+                     "\r\n", client.receivedMessages.get(0));
     }
 
     @Test
     void testClientRequestingFoundID() throws IOException {
-        ContentServer.main("127.0.0.1:4567 src/test/utility/weatherJson/resources/twoID.txt".split(" "));
+        ContentServer.main(("127.0.0.1:4567 src/test/utility/weatherJson/resources" +
+                            "/twoID.txt").split(" "));
         GETClient client = GETClient.from_args("127.0.0.1:4567 A0".split(" "));
         client.run();
-        assertEquals("""
-                GET /A0 HTTP/1.1\r
-                Host: 127.0.0.1:4567\r
-                Accept: application/json\r
-                Lamport-Clock: 1\r
-                \r
-                """, client.sentMessages.get(0));
-        assertEquals("""
-                HTTP/1.1 200 OK\r
-                Content-Type: application/json\r
-                Content-Length: 62\r
-                Lamport-Clock: 9\r
-                \r
-                {
-                "id": "A0",
-                "lat": 10,
-                "lon": 20.2,
-                "wind_spd_kt": "0x00f"
-                }""", client.receivedMessages.get(0));
+        assertEquals("GET /A0 HTTP/1.1\r\n" +
+                     "Host: 127.0.0.1:4567\r\n" +
+                     "Accept: application/json\r\n" +
+                     "Lamport-Clock: 1\r\n" +
+                     "\r\n", client.sentMessages.get(0));
+        assertEquals("HTTP/1.1 200 OK\r\n" +
+                     "Content-Type: application/json\r\n" +
+                     "Content-Length: 62\r\n" +
+                     "Lamport-Clock: 9\r\n" +
+                     "\r\n" +
+                     "{\n" +
+                     "\"id\": \"A0\",\n" +
+                     "\"lat\": 10,\n" +
+                     "\"lon\": 20.2,\n" +
+                     "\"wind_spd_kt\": \"0x00f\"\n" +
+                     "}", client.receivedMessages.get(0));
     }
 
     @Test
@@ -151,8 +140,8 @@ class OneGetOneContentTest extends IntegrationTest {
     @Test
     void testClientErrorNotShuttingDownServer() {
         assertThrows(RuntimeException.class, () -> GETClient.main(("127.0.0.1:4567 A0" +
-                " " +
-                "A1").split(" ")));
+                                                                   " " +
+                                                                   "A1").split(" ")));
         assertTrue(server.isUp());
     }
 
@@ -186,127 +175,124 @@ class OneGetOneContentTest extends IntegrationTest {
     @Test
     void testContentServerPUTRequest() throws IOException {
         ContentServer contentServer = ContentServer.from_args(("127.0.0.1:4567 " +
-                "src/test/utility/weatherJson/resources/twoID.txt").split(" "));
+                                                               "src/test/utility" +
+                                                               "/weatherJson" +
+                                                               "/resources/twoID.txt").split(" "));
         contentServer.run();
-        assertEquals("""
-                GET / HTTP/1.1\r
-                Host: 127.0.0.1:4567\r
-                Accept: application/json\r
-                Lamport-Clock: 1\r
-                \r
-                """, contentServer.sentMessages.get(0));
-        assertEquals("""
-                HTTP/1.1 204 No Content\r
-                Content-Type: application/json\r
-                Lamport-Clock: 3\r
-                \r
-                """, contentServer.receivedMessages.get(0));
-        assertEquals("""
-                PUT /src/test/utility/weatherJson/resources/twoID.txt HTTP/1.1\r
-                Host: 127.0.0.1:4567\r
-                Accept: application/json\r
-                Content-Type: application/json\r
-                Content-Length: 122\r
-                Lamport-Clock: 5\r
-                \r
-                {
-                "id": "A0",
-                "lat": 10,
-                "lon": 20.2,
-                "wind_spd_kt": "0x00f",
-                "id": "A1",
-                "lat": 10,
-                "lon": 20.2,
-                "wind_spd_kt": "0x00f"
-                }""", contentServer.sentMessages.get(1));
-        assertEquals("""
-                HTTP/1.1 201 Created\r
-                Content-Type: application/json\r
-                Content-Length: 122\r
-                Lamport-Clock: 7\r
-                \r
-                {
-                "id": "A0",
-                "lat": 10,
-                "lon": 20.2,
-                "wind_spd_kt": "0x00f",
-                "id": "A1",
-                "lat": 10,
-                "lon": 20.2,
-                "wind_spd_kt": "0x00f"
-                }""", contentServer.receivedMessages.get(1));
+        assertEquals("GET / HTTP/1.1\r\n" +
+                     "Host: 127.0.0.1:4567\r\n" +
+                     "Accept: application/json\r\n" +
+                     "Lamport-Clock: 1\r\n" +
+                     "\r\n", contentServer.sentMessages.get(0));
+        assertEquals("HTTP/1.1 204 No Content\r\n" +
+                     "Content-Type: application/json\r\n" +
+                     "Lamport-Clock: 3\r\n" +
+                     "\r\n", contentServer.receivedMessages.get(0));
+        assertEquals("PUT /src/test/utility/weatherJson/resources/twoID.txt HTTP/1" +
+                     ".1\r\n" +
+                     "Host: 127.0.0.1:4567\r\n" +
+                     "Accept: application/json\r\n" +
+                     "Content-Type: application/json\r\n" +
+                     "Content-Length: 122\r\n" +
+                     "Lamport-Clock: 5\r\n" +
+                     "\r\n" +
+                     "{\n" +
+                     "\"id\": \"A0\",\n" +
+                     "\"lat\": 10,\n" +
+                     "\"lon\": 20.2,\n" +
+                     "\"wind_spd_kt\": \"0x00f\",\n" +
+                     "\"id\": \"A1\",\n" +
+                     "\"lat\": 10,\n" +
+                     "\"lon\": 20.2,\n" +
+                     "\"wind_spd_kt\": \"0x00f\"\n" +
+                     "}", contentServer.sentMessages.get(1));
+        assertEquals("HTTP/1.1 201 Created\r\n" +
+                     "Content-Type: application/json\r\n" +
+                     "Content-Length: 122\r\n" +
+                     "Lamport-Clock: 7\r\n" +
+                     "\r\n" +
+                     "{\n" +
+                     "\"id\": \"A0\",\n" +
+                     "\"lat\": 10,\n" +
+                     "\"lon\": 20.2,\n" +
+                     "\"wind_spd_kt\": \"0x00f\",\n" +
+                     "\"id\": \"A1\",\n" +
+                     "\"lat\": 10,\n" +
+                     "\"lon\": 20.2,\n" +
+                     "\"wind_spd_kt\": \"0x00f\"\n" +
+                     "}", contentServer.receivedMessages.get(1));
     }
 
     @Test
     void testContentServerMultiplePUTRequest() throws IOException {
-        ContentServer.main("127.0.0.1:4567 src/test/utility/weatherJson/resources/twoID.txt".split(" "));
+        ContentServer.main(("127.0.0.1:4567 src/test/utility/weatherJson/resources" +
+                            "/twoID.txt").split(" "));
         ContentServer contentServer = ContentServer.from_args(("127.0.0.1:4567 " +
-                "src/test/utility/weatherJson/resources/twoID.txt").split(" "));
+                                                               "src/test/utility" +
+                                                               "/weatherJson" +
+                                                               "/resources/twoID.txt").split(" "));
         contentServer.run();
-        assertEquals("""
-                GET / HTTP/1.1\r
-                Host: 127.0.0.1:4567\r
-                Accept: application/json\r
-                Lamport-Clock: 1\r
-                \r
-                """, contentServer.sentMessages.get(0));
-        assertEquals("""
-                HTTP/1.1 204 No Content\r
-                Content-Type: application/json\r
-                Lamport-Clock: 9\r
-                \r
-                """, contentServer.receivedMessages.get(0));
-        assertEquals("""
-                PUT /src/test/utility/weatherJson/resources/twoID.txt HTTP/1.1\r
-                Host: 127.0.0.1:4567\r
-                Accept: application/json\r
-                Content-Type: application/json\r
-                Content-Length: 122\r
-                Lamport-Clock: 11\r
-                \r
-                {
-                "id": "A0",
-                "lat": 10,
-                "lon": 20.2,
-                "wind_spd_kt": "0x00f",
-                "id": "A1",
-                "lat": 10,
-                "lon": 20.2,
-                "wind_spd_kt": "0x00f"
-                }""", contentServer.sentMessages.get(1));
-        assertEquals("""
-                HTTP/1.1 200 OK\r
-                Content-Type: application/json\r
-                Content-Length: 122\r
-                Lamport-Clock: 13\r
-                \r
-                {
-                "id": "A0",
-                "lat": 10,
-                "lon": 20.2,
-                "wind_spd_kt": "0x00f",
-                "id": "A1",
-                "lat": 10,
-                "lon": 20.2,
-                "wind_spd_kt": "0x00f"
-                }""", contentServer.receivedMessages.get(1));
+        assertEquals("GET / HTTP/1.1\r\n" +
+                     "Host: 127.0.0.1:4567\r\n" +
+                     "Accept: application/json\r\n" +
+                     "Lamport-Clock: 1\r\n" +
+                     "\r\n", contentServer.sentMessages.get(0));
+        assertEquals("HTTP/1.1 204 No Content\r\n" +
+                     "Content-Type: application/json\r\n" +
+                     "Lamport-Clock: 9\r\n" +
+                     "\r\n", contentServer.receivedMessages.get(0));
+        assertEquals("PUT /src/test/utility/weatherJson/resources/twoID.txt HTTP/1" +
+                     ".1\r\n" +
+                     "Host: 127.0.0.1:4567\r\n" +
+                     "Accept: application/json\r\n" +
+                     "Content-Type: application/json\r\n" +
+                     "Content-Length: 122\r\n" +
+                     "Lamport-Clock: 11\r\n" +
+                     "\r\n" +
+                     "{\n" +
+                     "\"id\": \"A0\",\n" +
+                     "\"lat\": 10,\n" +
+                     "\"lon\": 20.2,\n" +
+                     "\"wind_spd_kt\": \"0x00f\",\n" +
+                     "\"id\": \"A1\",\n" +
+                     "\"lat\": 10,\n" +
+                     "\"lon\": 20.2,\n" +
+                     "\"wind_spd_kt\": \"0x00f\"\n" +
+                     "}", contentServer.sentMessages.get(1));
+        assertEquals("HTTP/1.1 200 OK\r\n" +
+                     "Content-Type: application/json\r\n" +
+                     "Content-Length: 122\r\n" +
+                     "Lamport-Clock: 13\r\n" +
+                     "\r\n" +
+                     "{\n" +
+                     "\"id\": \"A0\",\n" +
+                     "\"lat\": 10,\n" +
+                     "\"lon\": 20.2,\n" +
+                     "\"wind_spd_kt\": \"0x00f\",\n" +
+                     "\"id\": \"A1\",\n" +
+                     "\"lat\": 10,\n" +
+                     "\"lon\": 20.2,\n" +
+                     "\"wind_spd_kt\": \"0x00f\"\n" +
+                     "}", contentServer.receivedMessages.get(1));
     }
 
     @Test
     void testContentServerPUTRequestBeingIdempotent() throws IOException {
         // Run once check results identical
-        ContentServer.main(("127.0.0.1:4567 src/resources/WeatherData/SingleEntry/Adelaide_2023" +
-                "-07" +
-                "-15_16-00-00.txt").split(" "));
+        ContentServer.main(("127.0.0.1:4567 src/resources/WeatherData/SingleEntry" +
+                            "/Adelaide_2023" +
+                            "-07" +
+                            "-15_16-00-00.txt").split(" "));
         GETClient firstClient = GETClient.from_args("127.0.0.1:4567 5000".split(" "));
         firstClient.run();
 
         HTTPResponse firstResponse =
                 HTTPResponse.fromMessage(firstClient.receivedMessages.get(0));
         // Run again, check results are the same
-        ContentServer.main(("127.0.0.1:4567 src/resources/WeatherData/SingleEntry/Adelaide_2023" +
-                "-07" +
-                "-15_16-00-00.txt").split(" "));
+        ContentServer.main(("127.0.0.1:4567 src/resources/WeatherData/SingleEntry" +
+                            "/Adelaide_2023" +
+                            "-07" +
+                            "-15_16-00-00.txt").split(" "));
         GETClient secondClient = GETClient.from_args("127.0.0.1:4567 5000".split(" "));
         secondClient.run();
         HTTPResponse secondResponse =
@@ -362,7 +348,7 @@ class MultipleSerialPUTTest extends IntegrationTest {
         fileNames.add(prefixPath + "StClair_2023-07-15_16-30-00.txt");
 
         for (String path : fileNames) {
-            parser.parseFile(Path.of(path));
+            parser.parseFile(Paths.get(path));
             fixtureMap.put(path, parser.toString());
         }
     }
@@ -502,15 +488,13 @@ class MultipleSerialPUTTest extends IntegrationTest {
                 }
             });
         }
-        try (
-                ExecutorService executor = Executors.newCachedThreadPool()
-        ){
-            for (Runnable task: taskList){
-                executor.submit(task);
-            }
+        ExecutorService executor = Executors.newCachedThreadPool();
+        for (Runnable task : taskList) {
+            executor.submit(task);
         }
-        Thread.sleep(50);
+        Thread.sleep(500);
         assertTrue(server.getArchive().get("/127.0.0.1").isEmpty());
+        executor.shutdownNow();
     }
 
     @Test
@@ -546,27 +530,33 @@ class MultiplePUTWithCompositeDataTest extends IntegrationTest {
         fileNamesComposite = new ArrayList<>();
 
         Parser parser = new Parser();
-        fileNames.add("src/resources/WeatherData/SingleEntry/Adelaide_2023-07-15_16-30-00.txt");
-        fileNames.add("src/resources/WeatherData/SingleEntry/Glenelg_2023-07-15_16-30-00.txt");
-        fileNames.add("src/resources/WeatherData/SingleEntry/HenleyBeach_2023-07-15_16-30-00.txt");
-        fileNames.add("src/resources/WeatherData/SingleEntry/Glenelg_2023-07-15_16-00-00.txt");
+        fileNames.add("src/resources/WeatherData/SingleEntry/Adelaide_2023-07-15_16" +
+                      "-30-00.txt");
+        fileNames.add("src/resources/WeatherData/SingleEntry/Glenelg_2023-07-15_16-30" +
+                      "-00.txt");
+        fileNames.add("src/resources/WeatherData/SingleEntry/HenleyBeach_2023-07" +
+                      "-15_16-30-00.txt");
+        fileNames.add("src/resources/WeatherData/SingleEntry/Glenelg_2023-07-15_16-00" +
+                      "-00.txt");
 
-        parser.parseFile(Path.of(fileNames.get(0)));
+        parser.parseFile(Paths.get(fileNames.get(0)));
         fixtureMap.put("5000", parser.toString());
 
-        parser.parseFile(Path.of(fileNames.get(1)));
+        parser.parseFile(Paths.get(fileNames.get(1)));
         fixtureMap.put("5045_New", parser.toString());
 
-        parser.parseFile(Path.of(fileNames.get(2)));
+        parser.parseFile(Paths.get(fileNames.get(2)));
         fixtureMap.put("5022", parser.toString());
 
-        parser.parseFile(Path.of(fileNames.get(3)));
+        parser.parseFile(Paths.get(fileNames.get(3)));
         fixtureMap.put("5045_Old", parser.toString());
 
-        fileNamesComposite.add("src/resources/WeatherData/Composite/Adelaide_2023-07-15_16-30-00" +
-                ".txt");
-        fileNamesComposite.add("src/resources/WeatherData/Composite/Glenelg_2023-07-15_16-30-00" +
-                ".txt");
+        fileNamesComposite.add("src/resources/WeatherData/Composite/Adelaide_2023-07" +
+                               "-15_16-30-00" +
+                               ".txt");
+        fileNamesComposite.add("src/resources/WeatherData/Composite/Glenelg_2023-07" +
+                               "-15_16-30-00" +
+                               ".txt");
     }
 
     @Test
@@ -594,12 +584,13 @@ class MultiplePUTWithCompositeDataTest extends IntegrationTest {
     }
 
     @Test
-    void testCorrectBackUpCreated() throws IOException, ClassNotFoundException, InterruptedException {
+    void testCorrectBackUpCreated() throws IOException, ClassNotFoundException,
+            InterruptedException {
         String archiveDir = server.getConfig().get("archiveDir");
         String databaseDir = server.getConfig().get("databaseDir");
         ContentServer.main(("127.0.0.1:4567 " + fileNamesComposite.get(0)).split(" "));
         server.getServerSnapshot().createSnapShot();
-        ServerSnapshot newSnapShot = new ServerSnapshot(databaseDir,archiveDir);
+        ServerSnapshot newSnapShot = new ServerSnapshot(databaseDir, archiveDir);
         assertEquals(server.getDatabase(), newSnapShot.getDatabase());
         assertEquals(server.getArchive(), newSnapShot.getArchive());
 
@@ -615,7 +606,9 @@ class MultiplePUTWithCompositeDataTest extends IntegrationTest {
 
 
     @Test
-    void testBackUpDirNotExistsThrowError(){
-        assertThrows(RuntimeException.class, () -> server.getServerSnapshot().createSnapShot("src/backup/database", "src/backup/archive"));
+    void testBackUpDirNotExistsThrowError() {
+        assertThrows(RuntimeException.class,
+                () -> server.getServerSnapshot().createSnapShot("src/backup/database"
+                        , "src/backup/archive"));
     }
 }

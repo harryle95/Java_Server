@@ -7,6 +7,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -17,7 +18,7 @@ class ParserTest {
 
     @BeforeEach
     void initPath() {
-        workDir = Path.of("", "src/test/utility/weatherJson/resources");
+        workDir = Paths.get("", "src/test/utility/weatherJson/resources");
     }
 
     @BeforeEach

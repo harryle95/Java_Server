@@ -11,7 +11,7 @@ public class WeatherData {
 
 
     public WeatherData() {
-        numericFields = new ArrayList<>(List.of(new String[]{
+        numericFields = new ArrayList<>(Arrays.asList(new String[]{
                 "lat", "lon", "air_temp", "apparent_t",
                 "dewpt", "press", "rel_hum", "wind_spd_kmh", "wind_spd_kt"}));
         fields = new LinkedHashMap<>();

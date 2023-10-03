@@ -3,10 +3,7 @@ package utility.weatherJson;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -85,7 +82,8 @@ public class Parser {
         Pattern pattern = Pattern.compile(
                 "\"(\\w+)\": ?(\"[^\"]*\"|[^,\\n}]+),?$"
         );
-        List<String> splitMessage = List.of(message.split("\n"));
+        List<String> splitMessage = new ArrayList<>(Arrays.asList(message.split("\n")));
+
         parseString(splitMessage, pattern);
     }
 

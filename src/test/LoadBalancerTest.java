@@ -7,6 +7,7 @@ import utility.weatherJson.Parser;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -85,7 +86,7 @@ class LoadBalancerWithFixtureTest extends LoadBalancerTest {
         fileNames.add(prefixPath + "StClair_2023-07-15_16-30-00.txt");
 
         for (String path : fileNames) {
-            parser.parseFile(Path.of(path));
+            parser.parseFile(Paths.get(path));
             fixtureMap.put(path, parser.toString());
         }
     }
