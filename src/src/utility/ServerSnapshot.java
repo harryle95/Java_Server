@@ -91,7 +91,6 @@ public class ServerSnapshot {
             createFileSnapShot(archiveDir, (Serializable) archive);
         } catch (IOException e) {
             logger.info("Fail to Create Snapshot: " + e.getMessage());
-            throw new RuntimeException(e);
         }
     }
 }

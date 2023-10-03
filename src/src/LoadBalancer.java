@@ -100,7 +100,7 @@ public class LoadBalancer extends SocketServer {
                 try {
                     electLeader();
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    logger.info("Pre-Start-Hook fails for class LoadBalancer. Message: " + e);
                 }
             }
         }, HEARTBEAT_SCHEDULE, HEARTBEAT_SCHEDULE, TimeUnit.MILLISECONDS);
