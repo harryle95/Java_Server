@@ -20,11 +20,19 @@ make run_test
 
 ## To manually test the program:
 
+To set up `load_balanacer`:
+
+```bash
+make load_balancer
+```
+
 To set up `agg_server`:
 
 ```bash
 make agg_server
 ```
+
+Note that you should run either the load balancer or the agg server. The default option in makefile uses 4567 for port, so if you use both at the same time, a port is binded exception will be thrown.
 
 To set up `get_client`:
 

@@ -42,6 +42,10 @@ get_client: compile_src
 content_server: compile_src
 	java $(LOGGING_FLAG) -cp $(OUTDIR) ContentServer 127.0.0.1:4567 src/test/utility/json/resources/twoID.txt
 
+load_balancer: compile_src
+	java $(LOGGING_FLAG) -cp $(OUTDIR) LoadBalancer 4567
+
+
 .PHONY = clean
 clean:
 	rm -rf out

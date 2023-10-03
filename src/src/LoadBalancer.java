@@ -29,6 +29,12 @@ public class LoadBalancer extends SocketServer {
     private AggregationServer builtinServer;
     private ServerInfo leader;
 
+    /**
+     * Construct a load balancer
+     *
+     * @param port - port to bind to
+     * @throws IOException if port is occupied
+     */
     public LoadBalancer(int port) throws IOException {
         super(port);
         newPort = port + 1;
@@ -45,24 +51,55 @@ public class LoadBalancer extends SocketServer {
         server.close();
     }
 
+    /**
+     * Get the built in agg server
+     *
+     * @return the built in aggregation server
+     */
     public AggregationServer getBuiltinServer() {
         return builtinServer;
     }
 
+    /**
+     * Get the ServerInfo object of the current leader
+     *
+     * @return ServerInfo object of the current leader
+     */
     public ServerInfo getLeader() {
         return leader;
     }
 
+    /**
+     * Check if the server list contains a server identified by hostname and port
+     *
+     * @param hostname aggregation server hostname
+     * @param port     aggregation server port
+     * @return true if the load balancer is connected to the server, otherwise false
+     */
     public boolean contains(String hostname, int port) {
         return registry.contains(new ServerInfo(hostname, port));
     }
 
+
+    /**
+     * Add a new agg server to the list.
+     *
+     * @param hostname aggregation server hostname
+     * @param port     aggregation server port
+     */
     public void addServer(String hostname, int port) {
         logger.info("Adding new host to registry: " + hostname + ":" + port);
         if (isAlive(hostname, port))
             registry.add(new ServerInfo(hostname, port));
     }
 
+    /**
+     * Select a new leader from the pool of connected agg servers.
+     * <p>
+     * The load balancer sends a heart beat message to each server sequentially. The first server that
+     * response with a healthy status is set to be the leader. If no server is alive, a new built in server
+     * is set.
+     */
     public synchronized void electLeader() throws IOException {
         logger.info("Electing new leader among connected servers");
         for (ServerInfo info : registry) {
@@ -73,11 +110,17 @@ public class LoadBalancer extends SocketServer {
             }
         }
         logger.info("Not connecting to external server, creating a self-managed " +
-                    "server.");
+                "server.");
         startBuiltInServer();
         setLeader("127.0.0.1", newPort);
     }
 
+    /**
+     * Set the server identified by hostname and port to be the leader
+     *
+     * @param hostname aggregation server hostname
+     * @param port     aggregation server port
+     */
     public synchronized void setLeader(String hostname, int port) {
         ServerInfo info = new ServerInfo(hostname, port);
         if (!contains(hostname, port)) {
@@ -86,6 +129,13 @@ public class LoadBalancer extends SocketServer {
         leader = info;
     }
 
+    /**
+     * Send an empty GET message to check whether the server is alive.
+     *
+     * @param hostname aggregation server hostname
+     * @param port     aggregation server port
+     * @return true if a 2xx code is received
+     */
     public boolean isAlive(String hostname, int port) {
         try {
             GETClient.main((hostname + ":" + port).split(" "));
@@ -97,6 +147,11 @@ public class LoadBalancer extends SocketServer {
         }
     }
 
+    /**
+     * Pre-start hook: every 30 seconds or HEARTBEAT_SCHEDULE, the load balancer
+     * sends a heart beat check to the current leader. If the current leader is dead,
+     * it initiates a procedure to elect a new leader.
+     */
     @IgnoreCoverage
     protected void pre_start_hook() {
         super.pre_start_hook();
@@ -106,12 +161,16 @@ public class LoadBalancer extends SocketServer {
                     electLeader();
                 } catch (IOException e) {
                     logger.info("Pre-Start-Hook fails for class LoadBalancer. " +
-                                "Message: " + e);
+                            "Message: " + e);
                 }
             }
         }, HEARTBEAT_SCHEDULE, HEARTBEAT_SCHEDULE, TimeUnit.MILLISECONDS);
     }
 
+    /**
+     * Start-hook: when a new connection is received, create a new thread to handle the connection.
+     * If an exception is encountered (pool is shutdown), the start procedure is shutdown.
+     */
     @Override
     protected void start_hook() {
         try {
@@ -128,6 +187,10 @@ public class LoadBalancer extends SocketServer {
         }
     }
 
+    /**
+     * Start a local built-in server. Built-in server is set to use the port
+     * from the port of the load balancer + 1. When a port is occupied, this process is repeated until sucessful.
+     */
     private void startBuiltInServer() {
         try {
             builtinServer = new AggregationServer(newPort);
@@ -139,6 +202,9 @@ public class LoadBalancer extends SocketServer {
         }
     }
 
+    /**
+     * Close all thread pools
+     */
     @Override
     protected void pre_close_hook() {
         super.pre_close_hook();
@@ -152,6 +218,9 @@ public class LoadBalancer extends SocketServer {
             builtinServer.close();
     }
 
+    /**
+     * Auxiliary Server Info class. Is a data class containing the server hostname and port
+     */
     @IgnoreCoverage
     public static class ServerInfo {
         private final String hostname;
@@ -187,6 +256,9 @@ public class LoadBalancer extends SocketServer {
         }
     }
 
+    /**
+     * Client Handling class that is used when a thread is spawn to handle client's request.
+     */
     public class ClientHandler extends SocketCommunicator implements Runnable {
 
         SocketClient serverInterface;
@@ -198,6 +270,7 @@ public class LoadBalancer extends SocketServer {
                 BufferedReader in
         ) throws IOException {
             super(clientSocket, clock, out, in, "server");
+            // Create connection to leader server
             serverInterface =
                     GETClient.from_args((leader.hostname + ":" + leader.port).split(
                             " "));
@@ -205,6 +278,12 @@ public class LoadBalancer extends SocketServer {
         }
 
 
+        /**
+         * Redirect the current request to the leader and receives a response.
+         * If retry limit exceeds, send a 500 Internal Server Error Message
+         *
+         * @param request
+         */
         public void handleRequest(String request) {
             try {
                 serverInterface.send(HTTPRequest.fromMessage(request));
