@@ -12,12 +12,12 @@ LOGGING_FLAG = -Djava.util.logging.config.file=src/config/logging.properties
 make_dirs:
 	mkdir -p $(OUTDIR) $(TESTOUTDIR)
 
-compile_src:
+compile_src: make_dirs
 	find $(CLASSDIR) -name "*.java" > sources.txt
 	javac -d $(OUTDIR) -cp $(CLASSDIR) @sources.txt
 	rm sources.txt
 
-compile_test:
+compile_test: make_dirs
 	find $(TESTDIR) -name "*.java" > sources.txt
 	javac -d $(TESTOUTDIR) -cp $(JARFILES):$(CLASSDIR) @sources.txt
 	rm sources.txt
@@ -30,7 +30,7 @@ build_report:
 	java -cp out/report/:jar_files/intellij-coverage-reporter-1.0.737.jar:jar_files/freemarker-2.3.31.jar:jar_files/coverage-report-1.0.22.jar:jar_files/intellij-coverage-agent-1.0.737.jar ReportGenerator
 
 build_log:
-	python3.10 src/script/log_report.py --source_dir src/log --dest_dir src/log/agg
+	python3 src/script/log_report.py --source_dir src/log --dest_dir src/log/agg
 
 agg_server: compile_src
 	java $(LOGGING_FLAG) -cp $(OUTDIR) AggregationServer 4567
@@ -45,6 +45,6 @@ content_server: compile_src
 clean:
 	rm -rf out
 	rm -rf report
-	rm -rf src/backups/*
+	rm -rf src/resources/FileSystem/*.backup
 	rm -rf src/log/*
 	clear
