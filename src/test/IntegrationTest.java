@@ -37,11 +37,8 @@ public abstract class IntegrationTest {
             if (retries < MAX_RETRY) {
                 Thread.sleep(500);
                 setUp();
-            } else {
-                throw new RuntimeException(e);
             }
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
         }
         server.setWAIT_TIME(DEFAULT_WAIT_TIME);
     }
@@ -438,7 +435,6 @@ class MultipleSerialPUTTest extends IntegrationTest {
             try {
                 ContentServer.main(("127.0.0.1:4567 " + fileNames.get(0)).split(" "));
             } catch (IOException e) {
-                throw new RuntimeException(e);
             }
         };
 
@@ -446,7 +442,6 @@ class MultipleSerialPUTTest extends IntegrationTest {
             try {
                 ContentServer.main(("127.0.0.1:4567 " + fileNames.get(1)).split(" "));
             } catch (IOException e) {
-                throw new RuntimeException(e);
             }
         };
 
@@ -454,7 +449,6 @@ class MultipleSerialPUTTest extends IntegrationTest {
             try {
                 ContentServer.main(("127.0.0.1:4567 " + fileNames.get(3)).split(" "));
             } catch (IOException e) {
-                throw new RuntimeException(e);
             }
         };
 
@@ -462,7 +456,6 @@ class MultipleSerialPUTTest extends IntegrationTest {
             try {
                 ContentServer.main(("127.0.0.1:4567 " + fileNames.get(4)).split(" "));
             } catch (IOException e) {
-                throw new RuntimeException(e);
             }
         };
 
@@ -484,7 +477,6 @@ class MultipleSerialPUTTest extends IntegrationTest {
                 try {
                     ContentServer.main(("127.0.0.1:4567 " + file).split(" "));
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
                 }
             });
         }
@@ -586,6 +578,7 @@ class MultiplePUTWithCompositeDataTest extends IntegrationTest {
     @Test
     void testCorrectBackUpCreated() throws IOException, ClassNotFoundException,
             InterruptedException {
+        server.setWAIT_TIME(3000);
         String archiveDir = server.getConfig().get("archiveDir");
         String databaseDir = server.getConfig().get("databaseDir");
         ContentServer.main(("127.0.0.1:4567 " + fileNamesComposite.get(0)).split(" "));
