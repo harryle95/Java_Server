@@ -234,9 +234,9 @@ public class LoadBalancer extends SocketServer {
     protected void pre_close_hook() {
         super.pre_close_hook();
         logger.info("Closing load balancer connection pool");
-        connectionPool.shutdownNow();
+        connectionPool.shutdown();
         logger.info("Closing load balancer heartbeat pool");
-        heartbeatPool.shutdownNow();
+        heartbeatPool.shutdown();
         try {
             if (builtinServer != null && builtinServer.isUp())
                 builtinServer.close();

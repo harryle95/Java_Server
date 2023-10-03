@@ -486,7 +486,7 @@ class MultipleSerialPUTTest extends IntegrationTest {
         }
         Thread.sleep(1000);
         assertTrue(server.getArchive().get("/127.0.0.1").isEmpty());
-        executor.shutdownNow();
+        executor.shutdown();
     }
 
     @Test
