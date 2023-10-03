@@ -14,10 +14,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 
 public class LoadBalancer extends SocketServer {
@@ -27,6 +24,7 @@ public class LoadBalancer extends SocketServer {
     private final int HEARTBEAT_SCHEDULE = Integer.parseInt(config.get(
             "HEARTBEAT_SCHEDULE", "30000"));
     private final List<ServerInfo> registry = new ArrayList<>();
+    ScheduledFuture<?> heartbeatFuture;
     private int newPort;
     private AggregationServer builtinServer;
     private ServerInfo leader;
@@ -102,7 +100,7 @@ public class LoadBalancer extends SocketServer {
     @IgnoreCoverage
     protected void pre_start_hook() {
         super.pre_start_hook();
-        heartbeatPool.scheduleWithFixedDelay(() -> {
+        heartbeatFuture = heartbeatPool.scheduleWithFixedDelay(() -> {
             if (!isAlive(leader.hostname, leader.port)) {
                 try {
                     electLeader();
@@ -144,6 +142,8 @@ public class LoadBalancer extends SocketServer {
     @Override
     protected void pre_close_hook() {
         super.pre_close_hook();
+        if (heartbeatFuture != null)
+            heartbeatFuture.cancel(true);
         logger.info("Closing load balancer connection pool");
         connectionPool.shutdownNow();
         logger.info("Closing load balancer heartbeat pool");

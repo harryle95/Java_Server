@@ -125,9 +125,9 @@ public class AggregationServer extends SocketServer {
     protected void pre_close_hook() {
         super.pre_close_hook();
         if (createSnapShotFuture != null)
-            createSnapShotFuture.cancel(false);
+            createSnapShotFuture.cancel(true);
         if (removeEntryFuture != null)
-            removeEntryFuture.cancel(false);
+            removeEntryFuture.cancel(true);
         logger.info("Closing agg server connection handler pool: " + connectionHandlerPool.isTerminated());
         connectionHandlerPool.shutdownNow();
         logger.info("Closing agg server schedule pool");
