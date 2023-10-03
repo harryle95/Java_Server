@@ -32,6 +32,13 @@ public class ContentServer extends SocketClient {
         this.fileName = fileName;
     }
 
+    /**
+     * Create a ContentServer object from arguments from the CLI
+     *
+     * @param argv CLI argument
+     * @return ContentServer object
+     * @throws IOException if connection to host cannot be established
+     */
     public static ContentServer from_args(String[] argv) throws IOException {
         ContentServerParser parser = new ContentServerParser();
         ContentServerInformation info = parser.parse(argv);
@@ -48,12 +55,26 @@ public class ContentServer extends SocketClient {
         client.run();
     }
 
+    /**
+     * Get the content to be sent in body.
+     * <p>
+     * The server reads the local weather data file and load to memory
+     *
+     * @return weather data in json format
+     * @throws IOException if file is not found
+     */
     private String getBody() throws IOException {
         Parser parser = new Parser();
         parser.parseFile(Paths.get(fileName));
         return parser.toString();
     }
 
+    /**
+     * Generate a PUT request to send to agg server
+     *
+     * @return HTTPRequest PUT request with json file content
+     * @throws IOException if file is not found
+     */
     public HTTPRequest formatPUTMessage() throws IOException {
         HTTPRequest request = new HTTPRequest("1.1")
                 .setMethod("PUT")
@@ -67,6 +88,12 @@ public class ContentServer extends SocketClient {
         return request;
     }
 
+
+    /**
+     * Create an empty GET request
+     *
+     * @return HTTPRequest empty GET request
+     */
     public HTTPRequest formatGETMessage() {
         //Empty GET
         HTTPRequest request = new HTTPRequest("1.1").setMethod("GET");
@@ -80,6 +107,11 @@ public class ContentServer extends SocketClient {
         return request;
     }
 
+    /**
+     * Sends GET request to get timestamp, then send PUT request
+     *
+     * @throws IOException if connection issues encountered
+     */
     public void run() throws IOException {
         HTTPRequest requestGET = formatGETMessage();
         send(requestGET);

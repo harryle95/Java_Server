@@ -71,29 +71,57 @@ public class AggregationServer extends SocketServer {
         server.close();
     }
 
+    /**
+     * Getter for serverSnapshot
+     *
+     * @return serverSnapshot object
+     */
     public ServerSnapshot getServerSnapshot() {
         return serverSnapshot;
     }
 
+    /**
+     * Setter for FRESH_PERIOD_COUNT only for testing
+     *
+     * @param FRESH_PERIOD_COUNT int value
+     */
     public void setFRESH_PERIOD_COUNT(int FRESH_PERIOD_COUNT) {
         this.FRESH_PERIOD_COUNT = FRESH_PERIOD_COUNT;
     }
 
+    /**
+     * Setter for WAIT_TIME only for testing
+     *
+     * @param WAIT_TIME int value
+     */
     public void setWAIT_TIME(int WAIT_TIME) {
         this.WAIT_TIME = WAIT_TIME;
     }
 
 
+    /**
+     * Getter for database
+     *
+     * @return database object
+     */
     public ConcurrentMap<String, String> getDatabase() {
         return database;
     }
 
+    /**
+     * Getter for archive
+     *
+     * @return archive object
+     */
     public ConcurrentMap<String,
             ConcurrentMap<String, ConcurrentMap<String, String>>> getArchive() {
         return archive;
     }
 
 
+    /**
+     * Create a backup task that runs every 15 minutes or BACKUP_TIME
+     */
     @Override
     protected void pre_start_hook() {
         super.pre_start_hook();
@@ -102,6 +130,9 @@ public class AggregationServer extends SocketServer {
                         BACKUP_TIME, BACKUP_TIME, TimeUnit.MINUTES);
     }
 
+    /**
+     * When a new connection request is made, a thread from connectionHandlerPool is set to handle connection tasks
+     */
     @Override
     protected void start_hook() {
         super.start_hook();
@@ -121,6 +152,9 @@ public class AggregationServer extends SocketServer {
         }
     }
 
+    /**
+     * Stop all thread pools and future tasks
+     */
     @Override
     protected void pre_close_hook() {
         super.pre_close_hook();
