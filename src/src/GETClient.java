@@ -28,6 +28,13 @@ public class GETClient extends SocketClient {
     }
 
 
+    /**
+     * Create a GET Client object from arguments from the CLI
+     *
+     * @param argv CLI argument
+     * @return GETClient object
+     * @throws IOException if connection to host cannot be established
+     */
     public static GETClient from_args(String[] argv) throws IOException {
         GETClientParser parser = new GETClientParser();
         GETServerInformation info = parser.parse(argv);
@@ -38,6 +45,11 @@ public class GETClient extends SocketClient {
     }
 
 
+    /**
+     * Create a new request message based on the parameters provided at input
+     *
+     * @return HTTPRequest get message
+     */
     public HTTPRequest formatGETMessage() {
         HTTPRequest request = new HTTPRequest("1.1").setMethod("GET");
 
@@ -54,6 +66,11 @@ public class GETClient extends SocketClient {
         return request;
     }
 
+    /**
+     * Sends a GET request to the server and receives a response
+     *
+     * @throws IOException if connection issues occur
+     */
     public void run() throws IOException {
         HTTPRequest request = formatGETMessage();
         send(request);
