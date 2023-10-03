@@ -41,7 +41,7 @@ public abstract class SimulateServerErrorTest {
 
 }
 
-class GETClientTimeOutTest extends SimulateServerErrorTest {
+class ClientTimeOutTest extends SimulateServerErrorTest {
 
     @Test
     void testGETClientRetryAfterTimeOut() throws IOException {

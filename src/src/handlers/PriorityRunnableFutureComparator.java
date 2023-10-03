@@ -18,7 +18,7 @@ public class PriorityRunnableFutureComparator implements Comparator<Runnable> {
         else {
             int p1 = ((PriorityRunnableFuture<?>) o1).getPriority();
             int p2 = ((PriorityRunnableFuture<?>) o2).getPriority();
-            return Integer.compare(p1, p2);
+            return -Integer.compare(p1, p2);
         }
     }
 }

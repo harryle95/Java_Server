@@ -1,4 +1,3 @@
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import utility.ServerSnapshot;
@@ -6,49 +5,52 @@ import utility.http.HTTPRequest;
 import utility.http.HTTPResponse;
 import utility.weatherJson.Parser;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentMap;
 
 import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.*;
 
-public abstract class IntegrationTest {
+class IntegrationTest extends BaseTest {
     private final int MAX_RETRY = 5;
-    private final int DEFAULT_WAIT_TIME = 10;
+    private final int DEFAULT_WAIT_TIME = 100;
     AggregationServer server;
     private int retries = 0;
 
-    @BeforeEach
-    void setUp() throws IOException, InterruptedException {
+
+    @Override
+    void setupHook() {
         try {
-            server = new AggregationServer(4567);
+            server = new AggregationServer(port);
             retries = 0;
-            Runnable task = new StartServer(server);
-            new Thread(task).start();
         } catch (IOException e) {
             retries += 1;
             if (retries < MAX_RETRY) {
-                Thread.sleep(500);
-                setUp();
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException ex) {
+                    logger.info("Error: for setup hook: " + this.getClass().getName() +
+                                ": " + e);
+                }
+                setupHook();
             }
         } catch (ClassNotFoundException e) {
+            logger.info("Error: for setup hook: " + this.getClass().getName() + ": " + e);
         }
         server.setWAIT_TIME(DEFAULT_WAIT_TIME);
+        threadPool.submit(new StartServer(server));
     }
 
-
-    @AfterEach
-    void shutDown() {
+    @Override
+    void shutdownHook() {
         server.close();
     }
-
 
     static class StartServer implements Runnable {
         AggregationServer server;
@@ -64,10 +66,10 @@ public abstract class IntegrationTest {
     }
 }
 
-class OneGetOneContentTest extends IntegrationTest {
+class HTTPErrorMessageHandlingTest extends IntegrationTest {
 
     @Test
-    void testClientRequestingNotFoundID() throws IOException {
+    void testGETNotFoundIDGives404NotFound() throws IOException {
         GETClient client = GETClient.from_args("127.0.0.1:4567 A0".split(" "));
         client.run();
         assertEquals("GET /A0 HTTP/1.1\r\n" +
@@ -82,7 +84,7 @@ class OneGetOneContentTest extends IntegrationTest {
     }
 
     @Test
-    void testClientRequestingBlank() throws IOException {
+    void testGETBlankGives204NoContent() throws IOException {
         GETClient client = GETClient.from_args("127.0.0.1:4567".split(" "));
         client.run();
         assertEquals("GET / HTTP/1.1\r\n" +
@@ -97,7 +99,7 @@ class OneGetOneContentTest extends IntegrationTest {
     }
 
     @Test
-    void testClientRequestingFoundID() throws IOException {
+    void testGETFoundIDGives200OK() throws IOException {
         ContentServer.main(("127.0.0.1:4567 src/test/utility/weatherJson/resources" +
                             "/twoID.txt").split(" "));
         GETClient client = GETClient.from_args("127.0.0.1:4567 A0".split(" "));
@@ -121,7 +123,7 @@ class OneGetOneContentTest extends IntegrationTest {
     }
 
     @Test
-    void testServerShutDownClientThrowingException() {
+    void testWhenServerShutsDownClientThrowsException() {
         assertThrows(IOException.class, () -> {
             server.close();
             GETClient.main("127.0.0.1:4567 A0".split(" "));
@@ -129,7 +131,7 @@ class OneGetOneContentTest extends IntegrationTest {
     }
 
     @Test
-    void testClientErrorNotShuttingDownServer() {
+    void testClientErrorDoesNotShutDownServer() {
         assertThrows(RuntimeException.class, () -> GETClient.main(("127.0.0.1:4567 A0" +
                                                                    " " +
                                                                    "A1").split(" ")));
@@ -137,8 +139,9 @@ class OneGetOneContentTest extends IntegrationTest {
     }
 
     @Test
-    void testClientPrematureClosingDoesNotShutDownServer() throws IOException {
+    void testClientPrematureCloseDoesNotShutDownServer() throws IOException {
         GETClient client = GETClient.from_args("127.0.0.1:4567 A0".split(" "));
+        client.send(client.formatGETMessage());
         client.close();
         assertTrue(server.isUp());
     }
@@ -157,14 +160,14 @@ class OneGetOneContentTest extends IntegrationTest {
     }
 
     @Test
-    void testServerHandleMultipleGETClients() throws IOException {
+    void testServerHandleMultipleGETClientsSuccessfully() throws IOException {
         GETClient.main("127.0.0.1:4567 A0".split(" "));
         GETClient.main("127.0.0.1:4567 A1".split(" "));
         assertTrue(server.isUp());
     }
 
     @Test
-    void testContentServerPUTRequest() throws IOException {
+    void testFirstPUTRequestGives201Created() throws IOException {
         ContentServer contentServer = ContentServer.from_args(("127.0.0.1:4567 " +
                                                                "src/test/utility" +
                                                                "/weatherJson" +
@@ -215,7 +218,7 @@ class OneGetOneContentTest extends IntegrationTest {
     }
 
     @Test
-    void testContentServerMultiplePUTRequest() throws IOException {
+    void testSubsequentPUTRequestGives200OK() throws IOException {
         ContentServer.main(("127.0.0.1:4567 src/test/utility/weatherJson/resources" +
                             "/twoID.txt").split(" "));
         ContentServer contentServer = ContentServer.from_args(("127.0.0.1:4567 " +
@@ -268,7 +271,7 @@ class OneGetOneContentTest extends IntegrationTest {
     }
 
     @Test
-    void testContentServerPUTRequestBeingIdempotent() throws IOException {
+    void testPUTRequestBeingIdempotent() throws IOException {
         // Run once check results identical
         ContentServer.main(("127.0.0.1:4567 src/resources/WeatherData/SingleEntry" +
                             "/Adelaide_2023" +
@@ -292,7 +295,7 @@ class OneGetOneContentTest extends IntegrationTest {
     }
 
     @Test
-    void testClientSendingPOSTRequestReceiveBadRequest() throws IOException {
+    void testPOSTRequestReceives400BadRequest() throws IOException {
         GETClient client = GETClient.from_args("127.0.0.1:4567".split(" "));
         HTTPRequest request = new HTTPRequest("1.1").setMethod("POST").setURI(
                 "/Adelaide");
@@ -305,62 +308,25 @@ class OneGetOneContentTest extends IntegrationTest {
 }
 
 class MultipleSerialPUTTest extends IntegrationTest {
-    Map<String, String> fixtureMap;
 
-    List<String> fileNames;
+    String getDBContent(int id) {
+        return "{\n" + server.getDatabase().get(stationID.get(id)) + "\n}";
+    }
 
-    @BeforeEach
-    void createFixture() throws IOException {
-        fixtureMap = new HashMap<>();
-        fileNames = new ArrayList<>();
-        Parser parser = new Parser();
-        String prefixPath = "src/resources/WeatherData/SingleEntry/";
-        fileNames.add(prefixPath + "Adelaide_2023-07-15_16-00-00.txt");
-        fileNames.add(prefixPath + "Adelaide_2023-07-15_16-30-00.txt");
-        fileNames.add(prefixPath + "Glenelg_2023-07-15_16-00-00.txt");
-        fileNames.add(prefixPath + "Glenelg_2023-07-15_16-30-00.txt");
-        fileNames.add(prefixPath + "HenleyBeach_2023-07-15_16-00-00.txt");
-        fileNames.add(prefixPath + "HenleyBeach_2023-07-15_16-30-00.txt");
-        fileNames.add(prefixPath + "Kilkenny_2023-07-15_16-00-00.txt");
-        fileNames.add(prefixPath + "Kilkenny_2023-07-15_16-30-00.txt");
-        fileNames.add(prefixPath + "Melbourne_2023-07-15_16-00-00.txt");
-        fileNames.add(prefixPath + "Melbourne_2023-07-15_16-30-00.txt");
-        fileNames.add(prefixPath + "NorthAdelaide_2023-07-15_16-00-00.txt");
-        fileNames.add(prefixPath + "NorthAdelaide_2023-07-15_16-30-00.txt");
-        fileNames.add(prefixPath + "Parkville_2023-07-15_16-00-00.txt");
-        fileNames.add(prefixPath + "Parkville_2023-07-15_16-30-00.txt");
-        fileNames.add(prefixPath + "Pennington_2023-07-15_16-00-00.txt");
-        fileNames.add(prefixPath + "Pennington_2023-07-15_16-30-00.txt");
-        fileNames.add(prefixPath + "Seaton_2023-07-15_16-00-00.txt");
-        fileNames.add(prefixPath + "Seaton_2023-07-15_16-30-00.txt");
-        fileNames.add(prefixPath + "Semaphore_2023-07-15_16-00-00.txt");
-        fileNames.add(prefixPath + "Semaphore_2023-07-15_16-30-00.txt");
-        fileNames.add(prefixPath + "StClair_2023-07-15_16-00-00.txt");
-        fileNames.add(prefixPath + "StClair_2023-07-15_16-30-00.txt");
+    ConcurrentMap<String, ConcurrentMap<String, String>> getArchiveContent() {
+        return server.getArchive().get("/" + hostname);
+    }
 
-        for (String path : fileNames) {
-            parser.parseFile(Paths.get(path));
-            fixtureMap.put(path, parser.toString());
+    @Test
+    void testPUTRequestsUpdateDatabase() throws Exception {
+        for (int i = 0; i < fileNames.size(); i++) {
+            putRequest(i).call();
+            assertEquals(getDBContent(i),
+                    fixtureMap.get(fileNames.get(i)));
         }
+
     }
 
-    @Test
-    void testSinglePUTRequestsUpdateDatabase() throws IOException {
-        ContentServer.main(("127.0.0.1:4567 " + fileNames.get(0)).split(" "));
-        assertEquals("{\n" + server.getDatabase().get("5000") + "\n}",
-                fixtureMap.get(fileNames.get(0)));
-    }
-
-
-    @Test
-    void testMultiplePUTRequestsUpdateDatabase() throws IOException {
-        ContentServer.main(("127.0.0.1:4567 " + fileNames.get(0)).split(" "));
-        assertEquals("{\n" + server.getDatabase().get("5000") + "\n}",
-                fixtureMap.get(fileNames.get(0)));
-        ContentServer.main(("127.0.0.1:4567 " + fileNames.get(1)).split(" "));
-        assertEquals("{\n" + server.getDatabase().get("5000") + "\n}",
-                fixtureMap.get(fileNames.get(1)));
-    }
 
     @Test
     void testInterleavedGETPUTRequests() throws IOException {
@@ -375,130 +341,91 @@ class MultipleSerialPUTTest extends IntegrationTest {
     }
 
     @Test
-    void testIndependentPUTDoNotInterfereOneAnother() throws IOException {
-        ContentServer.main(("127.0.0.1:4567 " + fileNames.get(0)).split(" "));
-        ContentServer.main(("127.0.0.1:4567 " + fileNames.get(2)).split(" "));
-        assertEquals("{\n" + server.getDatabase().get("5000") + "\n}",
-                fixtureMap.get(fileNames.get(0)));
-        assertEquals("{\n" + server.getDatabase().get("5045") + "\n}",
-                fixtureMap.get(fileNames.get(2)));
-    }
-
-    @Test
-    void testOldestEventsEjectedFromArchive() throws IOException {
-        for (String file : fileNames) {
-            ContentServer.main(("127.0.0.1:4567 " + file).split(" "));
+    void testIndependentPUTDoNotInterfereOneAnotherSerial() throws Exception {
+        for (int i = 0; i < fileNames.size(); i += 2) {
+            putRequest(i).call();
         }
-        assertFalse(server.getArchive().get("/127.0.0.1").containsKey(fileNames.get(0)));
-        assertFalse(server.getArchive().get("/127.0.0.1").containsKey(fileNames.get(1)));
-        assertTrue(server.getArchive().get("/127.0.0.1").containsKey(fileNames.get(20)));
+
+        for (int i = 0; i < fileNames.size(); i += 2) {
+            assertEquals(getDBContent(i), fixtureMap.get(fileNames.get(i)));
+        }
     }
 
     @Test
-    void testFilesRemovedAfterConnectionClosed() throws IOException,
-            InterruptedException {
+    void testIndependentPUTDoNotInterfereOneAnotherConcurrent() throws Exception {
+        List<Callable<Object>> taskList = new ArrayList<>();
+        for (int i = 0; i < fileNames.size(); i += 2) {
+            taskList.add(putRequest(i));
+        }
+        threadPool.invokeAll(taskList);
+
+        for (int i = 0; i < fileNames.size(); i += 2) {
+            assertEquals(getDBContent(i), fixtureMap.get(fileNames.get(i)));
+        }
+    }
+
+    @Test
+    void testOldestEventsEjectedFromArchive() throws Exception {
+        for (int i = 0; i < fileNames.size(); i++) {
+            putRequest(i).call();
+        }
+        assertFalse(getArchiveContent().containsKey(fileNames.get(0)));
+        assertFalse(getArchiveContent().containsKey(fileNames.get(1)));
+        assertTrue(getArchiveContent().containsKey(fileNames.get(20)));
+    }
+
+    @Test
+    void testFilesRemovedAfterConnectionClosed() throws Exception {
         server.setWAIT_TIME(1);
-        ContentServer.main(("127.0.0.1:4567 " + fileNames.get(0)).split(" "));
-        assertTrue(server.getArchive().get("/127.0.0.1").containsKey(fileNames.get(0)));
+        putRequest(0).call();
+        assertTrue(getArchiveContent().containsKey(fileNames.get(0)));
         Thread.sleep(300);
-        assertFalse(server.getArchive().get("/127.0.0.1").containsKey(fileNames.get(0)));
+        assertFalse(getArchiveContent().containsKey(fileNames.get(0)));
     }
 
     @Test
-    void testWhenUpdateQueueContainsTheSameEntryArchiveDoNotRemove() throws IOException {
+    void testWhenUpdateQueueContainsTheSameEntryArchiveDoNotRemove() throws Exception {
         server.setFRESH_PERIOD_COUNT(1);
-        ContentServer.main(("127.0.0.1:4567 " + fileNames.get(0)).split(" "));
-        ContentServer.main(("127.0.0.1:4567 " + fileNames.get(0)).split(" "));
-        assertTrue(server.getArchive().get("/127.0.0.1").containsKey(fileNames.get(0)));
+        putRequest(0).call();
+        putRequest(0).call();
+        assertTrue(getArchiveContent().containsKey(fileNames.get(0)));
     }
 
     @Test
-    void testWhenUpdateQueueContainsUpdatedVersionOfTheSameEntryArchiveDoNotRemove() throws IOException {
+    void testWhenUpdateQueueContainsUpdatedVersionOfTheSameEntryArchiveDoNotRemove() throws Exception {
         server.setFRESH_PERIOD_COUNT(3);
-        ContentServer.main(("127.0.0.1:4567 " + fileNames.get(0)).split(" "));
-        ContentServer.main(("127.0.0.1:4567 " + fileNames.get(2)).split(" "));
-        ContentServer.main(("127.0.0.1:4567 " + fileNames.get(1)).split(" "));
-        ContentServer.main(("127.0.0.1:4567 " + fileNames.get(0)).split(" "));
+        putRequest(0).call();
+        putRequest(1).call();
+        putRequest(2).call();
+        putRequest(0).call();
         assertTrue(server.getArchive().get("/127.0.0.1").containsKey(fileNames.get(0)));
     }
 
-    @Test
-    void testAllFilesRemovedSteadyState4Files() throws InterruptedException {
-        server.setWAIT_TIME(1);
-        Runnable task1 = () -> {
-            try {
-                ContentServer.main(("127.0.0.1:4567 " + fileNames.get(0)).split(" "));
-            } catch (IOException e) {
-            }
-        };
-
-        Runnable task2 = () -> {
-            try {
-                ContentServer.main(("127.0.0.1:4567 " + fileNames.get(1)).split(" "));
-            } catch (IOException e) {
-            }
-        };
-
-        Runnable task3 = () -> {
-            try {
-                ContentServer.main(("127.0.0.1:4567 " + fileNames.get(3)).split(" "));
-            } catch (IOException e) {
-            }
-        };
-
-        Runnable task4 = () -> {
-            try {
-                ContentServer.main(("127.0.0.1:4567 " + fileNames.get(4)).split(" "));
-            } catch (IOException e) {
-            }
-        };
-
-        new Thread(task1).start();
-        new Thread(task2).start();
-        new Thread(task3).start();
-        new Thread(task4).start();
-
-        Thread.sleep(1000);
-        assertTrue(server.getArchive().get("/127.0.0.1").isEmpty());
-    }
 
     @Test
     void testAllFilesRemovedSteadStateAllFiles() throws InterruptedException {
         server.setWAIT_TIME(1);
-        List<Runnable> taskList = new ArrayList<>();
-        for (String file : fileNames) {
-            taskList.add(() -> {
-                try {
-                    ContentServer.main(("127.0.0.1:4567 " + file).split(" "));
-                } catch (IOException e) {
-                }
-            });
+        List<Callable<Object>> taskList = new ArrayList<>();
+        for (int i = 0; i < fileNames.size(); i += 2) {
+            taskList.add(putRequest(i));
         }
-        ExecutorService executor = Executors.newCachedThreadPool();
-        for (Runnable task : taskList) {
-            executor.submit(task);
-        }
+        threadPool.invokeAll(taskList);
         Thread.sleep(1000);
         assertTrue(server.getArchive().get("/127.0.0.1").isEmpty());
-        executor.shutdown();
     }
 
     @Test
-    void testPUTRequestAreSerialisedCorrectlyFourTasks() throws IOException {
-        ContentServer.main(("127.0.0.1:4567 " + fileNames.get(0)).split(" "));
-        ContentServer.main(("127.0.0.1:4567 " + fileNames.get(1)).split(" "));
-        ContentServer.main(("127.0.0.1:4567 " + fileNames.get(2)).split(" "));
-        ContentServer.main(("127.0.0.1:4567 " + fileNames.get(3)).split(" "));
+    void testPUTRequestAreSerialisedCorrectlyFourTasks() throws Exception {
+        putRequest(0).call();
+        putRequest(1).call();
+        putRequest(2).call();
+        putRequest(3).call();
 
-        GETClient firstClient = GETClient.from_args("127.0.0.1:4567 5000".split(" "));
-        firstClient.run();
-        assertEquals(HTTPResponse.fromMessage(firstClient.receivedMessages.get(0)).body, fixtureMap.get(fileNames.get(1)));
+        HTTPResponse response = getResponse(stationID.get(0));
+        assertEquals(response.body, fixtureMap.get(fileNames.get(1)));
 
-        GETClient secondClient = GETClient.from_args("127.0.0.1:4567 5045".split(" "));
-        secondClient.run();
-        assertEquals(HTTPResponse.fromMessage(secondClient.receivedMessages.get(0)).body, fixtureMap.get(fileNames.get(3)));
-
-
+        response = getResponse(stationID.get(3));
+        assertEquals(response.body, fixtureMap.get(fileNames.get(3)));
     }
 
 }
@@ -510,7 +437,7 @@ class MultiplePUTWithCompositeDataTest extends IntegrationTest {
     List<String> fileNamesComposite;
 
     @BeforeEach
-    void createFixture() throws IOException {
+    void overwriteFixture() throws IOException {
         fixtureMap = new HashMap<>();
         fileNames = new ArrayList<>();
         fileNamesComposite = new ArrayList<>();
@@ -570,25 +497,19 @@ class MultiplePUTWithCompositeDataTest extends IntegrationTest {
     }
 
     @Test
-    void testCorrectBackUpCreated() throws IOException, ClassNotFoundException,
-            InterruptedException {
+    void testCorrectBackUpCreated() throws Exception {
         server.setWAIT_TIME(3000);
-        String archiveDir = server.getConfig().get("archiveDir");
-        String databaseDir = server.getConfig().get("databaseDir");
-        ContentServer.main(("127.0.0.1:4567 " + fileNamesComposite.get(0)).split(" "));
+        putRequest(0).call();
         server.getServerSnapshot().createSnapShot();
-        ServerSnapshot newSnapShot = new ServerSnapshot(databaseDir, archiveDir);
+        ServerSnapshot newSnapShot = new ServerSnapshot(databaseBackUp, archiveBackUp);
         assertEquals(server.getDatabase(), newSnapShot.getDatabase());
         assertEquals(server.getArchive(), newSnapShot.getArchive());
 
         // Restart the server
-        shutDown();
-        setUp();
-        // Remove files
-        new File(archiveDir).delete();
-        new File(databaseDir).delete();
+        shutdown();
+        setupNotDelete();
+        // Test
         assertEquals(server.getDatabase(), newSnapShot.getDatabase());
         assertEquals(server.getArchive(), newSnapShot.getArchive());
     }
-
 }

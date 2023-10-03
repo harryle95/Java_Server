@@ -105,7 +105,6 @@ agg_server:
     option:
       logging: -Djava.util.logging.config.file=src/config/logging.properties
   cmd: |
-    #!/usr/bin/bash
     java $(logging) -cp $(OUTDIR) AggregationServer $(port)
 
 load_balancer:
@@ -135,6 +134,8 @@ get_client:
 
 
 
+
+
 content_server:
   var:
     basic:
@@ -149,6 +150,24 @@ content_server:
     #!/usr/bin/bash
     java $(logging) -cp $(OUTDIR) ContentServer $(hostname):$(port) $(rootdir)/$(fileName)
 
+
+integration:
+  var:
+    basic:
+      OUTDIR: out/production/Java_Server
+      hostname: 127.0.0.1
+      port: 4567
+      logging: -Djava.util.logging.config.file=src/config/logging.properties
+      rootdir: src/resources/WeatherData/SingleEntry
+  cmd:
+    - java -cp $(OUTDIR) ContentServer $(hostname):$(port) $(rootdir)/Adelaide_2023-07-15_16-00-00.txt &
+    - java -cp $(OUTDIR) ContentServer $(hostname):$(port) $(rootdir)/Adelaide_2023-07-15_16-30-00.txt &
+    - java -cp $(OUTDIR) ContentServer $(hostname):$(port) $(rootdir)/Glenelg_2023-07-15_16-00-00.txt &
+    - java -cp $(OUTDIR) ContentServer $(hostname):$(port) $(rootdir)/Glenelg_2023-07-15_16-30-00.txt &
+    - java -cp $(OUTDIR) ContentServer $(hostname):$(port) $(rootdir)/Adelaide_2023-07-15_16-00-00.txt &
+    - java -cp $(OUTDIR) ContentServer $(hostname):$(port) $(rootdir)/Adelaide_2023-07-15_16-30-00.txt &
+    - java -cp $(OUTDIR) ContentServer $(hostname):$(port) $(rootdir)/Glenelg_2023-07-15_16-00-00.txt &
+    - java -cp $(OUTDIR) ContentServer $(hostname):$(port) $(rootdir)/Glenelg_2023-07-15_16-30-00.txt &
 
 clean_unix:
   cmd:

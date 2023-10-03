@@ -76,7 +76,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     source_path = Path(args.source_dir)
     records = Record.from_dir(source_path)
-    current_time = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")
+    current_time = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%S")
     dest_path = Path(args.dest_dir)
     dest_path.mkdir(parents=True, exist_ok=True)
     with open(dest_path / f"Aggregated_{current_time}.log", "w") as file:

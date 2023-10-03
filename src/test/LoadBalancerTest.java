@@ -18,8 +18,8 @@ class LoadBalancerTest {
     LoadBalancer loadBalancer;
 
 
-    HTTPResponse getClientReceivedResponse(String hostname, int port, String id) throws IOException {
-        GETClient client = GETClient.from_args(String.format("%s:%d %s", hostname, port, id).split(" "));
+    HTTPResponse getClientReceivedResponse(String id) throws IOException {
+        GETClient client = GETClient.from_args(String.format("%s:%d %s", "127.0.0.1", 4567, id).split(" "));
         client.run();
         return HTTPResponse.fromMessage(client.receivedMessages.get(0));
     }
@@ -35,7 +35,7 @@ class LoadBalancerTest {
     @BeforeEach
     void setup() throws IOException, ClassNotFoundException {
         setupHook();
-        loadBalancer.getBuiltinServer().setWAIT_TIME(1);
+        loadBalancer.getBuiltinServer().setWAIT_TIME(100);
     }
 
     @AfterEach
@@ -93,20 +93,20 @@ class LoadBalancerGETPUTTest extends LoadBalancerWithFixtureTest {
     @Test
     void testOneGETOnePUTGivesSameResult() throws IOException {
         runContentServer("127.0.0.1", 4567, 0);
-        HTTPResponse response = getClientReceivedResponse("127.0.0.1", 4567, "5000");
+        HTTPResponse response = getClientReceivedResponse("5000");
         assertEquals(fixtureMap.get(fileNames.get(0)), response.body);
     }
 
     @Test
     void testInterLeaveGETPUT() throws IOException {
         runContentServer("127.0.0.1", 4567, 0);
-        HTTPResponse response = getClientReceivedResponse("127.0.0.1", 4567, "5000");
+        HTTPResponse response = getClientReceivedResponse("5000");
         assertEquals(fixtureMap.get(fileNames.get(0)), response.body);
         runContentServer("127.0.0.1", 4567, 1);
-        response = getClientReceivedResponse("127.0.0.1", 4567, "5000");
+        response = getClientReceivedResponse("5000");
         assertEquals(fixtureMap.get(fileNames.get(1)), response.body);
         runContentServer("127.0.0.1", 4567, 2);
-        response = getClientReceivedResponse("127.0.0.1", 4567, "5000");
+        response = getClientReceivedResponse("5000");
         assertEquals(fixtureMap.get(fileNames.get(1)), response.body);
     }
 
