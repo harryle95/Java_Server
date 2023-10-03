@@ -151,7 +151,7 @@ class OneGetOneContentTest extends IntegrationTest {
     }
 
     @Test
-    void testServerCloseDoesCloseSocket() throws IOException {
+    void testServerCloseDoesCloseSocket() {
         server.close();
         assertFalse(server.isUp());
     }

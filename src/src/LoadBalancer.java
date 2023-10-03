@@ -133,9 +133,7 @@ public class LoadBalancer extends SocketServer {
     private void startBuiltInServer() {
         try {
             builtinServer = new AggregationServer(newPort);
-            new Thread(() -> {
-                builtinServer.start();
-            }).start();
+            new Thread(() -> builtinServer.start()).start();
             addServer("127.0.0.1", newPort);
         } catch (IOException | ClassNotFoundException e) {
             newPort += 1;

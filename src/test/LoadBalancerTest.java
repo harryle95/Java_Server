@@ -6,7 +6,6 @@ import utility.weatherJson.Parser;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -148,7 +147,7 @@ class LoadBalancerGETPUTTest extends LoadBalancerWithFixtureTest {
 
 class LoadBalancerFailOverTest extends LoadBalancerWithFixtureTest {
     @Test
-    void testWhenBuiltInServerDiesIsAliveIsFalse() throws IOException, InterruptedException {
+    void testWhenBuiltInServerDiesIsAliveIsFalse() throws InterruptedException {
         loadBalancer.getBuiltinServer().close();
         assertEquals(4568, loadBalancer.getLeader().getPort());
         Thread.sleep(100);
@@ -172,9 +171,7 @@ class LoadBalancerUsePreSetFailOverServerTest extends LoadBalancerWithFixtureTes
 
     void setupHook() throws IOException, ClassNotFoundException {
         aggServer = new AggregationServer(4568);
-        new Thread(() -> {
-            aggServer.start();
-        }).start();
+        new Thread(() -> aggServer.start()).start();
         super.setupHook();
         loadBalancer.addServer("127.0.0.1",4568);
         loadBalancer.setLeader("127.0.0.1", 4568);

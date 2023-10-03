@@ -67,11 +67,9 @@ public abstract class SocketServer {
 
     public void start() {
         pre_start_hook();
-        while (true) {
+        do {
             start_hook();
-            if (startBreakSignal)
-                break;
-        }
+        } while (!startBreakSignal);
     }
 
     public void close() {
