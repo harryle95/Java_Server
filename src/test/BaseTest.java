@@ -91,12 +91,14 @@ public abstract class BaseTest {
     }
     @BeforeEach
     void setup() throws IOException {
-        Files.deleteIfExists(Paths.get(databaseBackUp));
-        Files.deleteIfExists(Paths.get(archiveBackUp));
+        deleteFiles();
         setupNotDelete();
     }
 
-
+    void deleteFiles() throws IOException{
+        Files.deleteIfExists(Paths.get(databaseBackUp));
+        Files.deleteIfExists(Paths.get(archiveBackUp));
+    }
 
     abstract void shutdownHook();
 

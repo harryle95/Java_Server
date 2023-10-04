@@ -4,6 +4,7 @@ import utility.config.Config;
 import utility.http.HTTPMessage;
 import utility.http.HTTPRequest;
 import utility.http.HTTPResponse;
+import utility.http.HTTPSocketParser;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -45,24 +46,50 @@ public abstract class SocketCommunicator {
         logger.info("Connecting to remote: " + clientSocket.getRemoteSocketAddress());
     }
 
+    private String receiveMessage() throws IOException {
+        HTTPSocketParser socketParser = new HTTPSocketParser();
+
+        while (true) {
+            String line = in.readLine();
+            if (line != null) {
+                socketParser.parseLine(line);
+                if (socketParser.isComplete())
+                    return socketParser.toString();
+            } else {
+                return null;
+            }
+        }
+    }
+
+    private int parseLamportClock(HTTPMessage message) {
+        String ts = message.getHeader("Lamport-Clock");
+        int value = 0;
+        if (ts != null) {
+            try {
+                value = Integer.parseInt(ts);
+            } catch (RuntimeException e) {
+                value = 0;
+            }
+        }
+        return value;
+    }
+
     public String receive() throws IOException {
-        String encodedResponse = in.readLine();
-        if (encodedResponse != null) {
+        String receivedResponse = receiveMessage();
+        if (receivedResponse != null) {
             if (type.equals("client")) {
                 HTTPResponse response =
-                        HTTPResponse.fromMessage(MessageExchanger.decode(encodedResponse));
-                clock.advanceAndSetTimeStamp(Integer.parseInt(response.header.get(
-                        "Lamport-Clock")));
+                        HTTPResponse.fromMessage(receivedResponse);
+                clock.advanceAndSetTimeStamp(parseLamportClock(response));
                 receivedMessages.add(response.toString());
-                logger.info("Receive response: \n" + response);
+                logger.info("Receive response at " + this.getClass().getName() + ":\n" + response);
                 return response.toString();
             } else {
                 HTTPRequest request =
-                        HTTPRequest.fromMessage(MessageExchanger.decode(encodedResponse));
-                clock.advanceAndSetTimeStamp(Integer.parseInt(request.header.get(
-                        "Lamport-Clock")));
+                        HTTPRequest.fromMessage(receivedResponse);
+                clock.advanceAndSetTimeStamp(parseLamportClock(request));
                 receivedMessages.add(request.toString());
-                logger.info("Receive request: \n" + request);
+                logger.info("Receive request at " + this.getClass().getName() + ":\n" + request);
                 return request.toString();
             }
         }
@@ -74,9 +101,9 @@ public abstract class SocketCommunicator {
     public void send(HTTPMessage message) {
         int TS = clock.advanceAndGetTimeStamp();
         message.setHeader("Lamport-Clock", String.valueOf(TS));
-        logger.info("Sending message: \n" + message);
+        logger.info("Sending message from " + this.getClass().getName() + ": \n" + message);
         sentMessages.add(message.toString());
-        out.println(MessageExchanger.encode(message.toString()));
+        out.println(message);
     }
 
 

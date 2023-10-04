@@ -14,6 +14,7 @@ import java.net.SocketException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 
 public class ContentServer extends SocketClient {
     private final String fileName;
@@ -120,7 +121,7 @@ public class ContentServer extends SocketClient {
             if (response != null) { // Comm is still maintained
                 HTTPResponse httpResponse = HTTPResponse.fromMessage(response);
                 // ACK for GET message
-                if (httpResponse.body == null) {
+                if (Objects.equals(httpResponse.statusCode, "204")) {
                     HTTPRequest requestPUT = formatPUTMessage();
                     send(requestPUT);
                 } else { // Close connection when PUT ACK is received

@@ -69,6 +69,18 @@ class IntegrationTest extends BaseTest {
 class HTTPErrorMessageHandlingTest extends IntegrationTest {
 
     @Test
+    void testRawPUTMessageWorks() throws IOException, InterruptedException {
+        ContentServer contentServer = ContentServer.from_args(("127.0.0.1:4567 " +
+                "src/test/utility" +
+                "/weatherJson" +
+                "/resources/twoID.txt").split(" "));
+        HTTPRequest request = contentServer.formatPUTMessage();
+        contentServer.send(request);
+        String message = contentServer.receive();
+        assertEquals(request.body, HTTPResponse.fromMessage(message).body);
+    }
+
+    @Test
     void testGETNotFoundIDGives404NotFound() throws IOException {
         GETClient client = GETClient.from_args("127.0.0.1:4567 A0".split(" "));
         client.run();
@@ -77,10 +89,8 @@ class HTTPErrorMessageHandlingTest extends IntegrationTest {
                      "Accept: application/json\r\n" +
                      "Lamport-Clock: 1\r\n" +
                      "\r\n", client.sentMessages.get(0));
-        assertEquals("HTTP/1.1 404 Not Found\r\n" +
-                     "Content-Type: application/json\r\n" +
-                     "Lamport-Clock: 3\r\n" +
-                     "\r\n", client.receivedMessages.get(0));
+        HTTPResponse response = HTTPResponse.fromMessage(client.receivedMessages.get(0));
+        assertEquals("404", response.statusCode);
     }
 
     @Test
@@ -92,10 +102,8 @@ class HTTPErrorMessageHandlingTest extends IntegrationTest {
                      "Accept: application/json\r\n" +
                      "Lamport-Clock: 1\r\n" +
                      "\r\n", client.sentMessages.get(0));
-        assertEquals("HTTP/1.1 204 No Content\r\n" +
-                     "Content-Type: application/json\r\n" +
-                     "Lamport-Clock: 3\r\n" +
-                     "\r\n", client.receivedMessages.get(0));
+        HTTPResponse response = HTTPResponse.fromMessage(client.receivedMessages.get(0));
+        assertEquals("204", response.statusCode);
     }
 
     @Test
@@ -178,10 +186,8 @@ class HTTPErrorMessageHandlingTest extends IntegrationTest {
                      "Accept: application/json\r\n" +
                      "Lamport-Clock: 1\r\n" +
                      "\r\n", contentServer.sentMessages.get(0));
-        assertEquals("HTTP/1.1 204 No Content\r\n" +
-                     "Content-Type: application/json\r\n" +
-                     "Lamport-Clock: 3\r\n" +
-                     "\r\n", contentServer.receivedMessages.get(0));
+        HTTPResponse response = HTTPResponse.fromMessage(contentServer.receivedMessages.get(0));
+        assertEquals("204", response.statusCode);
         assertEquals("PUT /src/test/utility/weatherJson/resources/twoID.txt HTTP/1" +
                      ".1\r\n" +
                      "Host: 127.0.0.1:4567\r\n" +
@@ -231,10 +237,8 @@ class HTTPErrorMessageHandlingTest extends IntegrationTest {
                      "Accept: application/json\r\n" +
                      "Lamport-Clock: 1\r\n" +
                      "\r\n", contentServer.sentMessages.get(0));
-        assertEquals("HTTP/1.1 204 No Content\r\n" +
-                     "Content-Type: application/json\r\n" +
-                     "Lamport-Clock: 9\r\n" +
-                     "\r\n", contentServer.receivedMessages.get(0));
+        HTTPResponse response = HTTPResponse.fromMessage(contentServer.receivedMessages.get(0));
+        assertEquals("204", response.statusCode );
         assertEquals("PUT /src/test/utility/weatherJson/resources/twoID.txt HTTP/1" +
                      ".1\r\n" +
                      "Host: 127.0.0.1:4567\r\n" +
@@ -511,5 +515,7 @@ class MultiplePUTWithCompositeDataTest extends IntegrationTest {
         // Test
         assertEquals(server.getDatabase(), newSnapShot.getDatabase());
         assertEquals(server.getArchive(), newSnapShot.getArchive());
+        // Delete Files
+        deleteFiles();
     }
 }

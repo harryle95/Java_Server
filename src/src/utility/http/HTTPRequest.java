@@ -76,6 +76,11 @@ public class HTTPRequest implements HTTPMessage {
         return this;
     }
 
+    @Override
+    public String getHeader(String key) {
+        return this.header.get(key);
+    }
+
     /**
      * Generate HTTP Request as a string object from the current state
      *

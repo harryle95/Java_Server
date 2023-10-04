@@ -105,6 +105,7 @@ agg_server:
     option:
       logging: -Djava.util.logging.config.file=src/config/logging.properties
   cmd: |
+    #!/usr/bin/bash
     java $(logging) -cp $(OUTDIR) AggregationServer $(port)
 
 load_balancer:

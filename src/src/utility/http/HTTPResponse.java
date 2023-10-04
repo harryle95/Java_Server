@@ -87,6 +87,11 @@ public class HTTPResponse implements HTTPMessage {
         return this;
     }
 
+    @Override
+    public String getHeader(String key) {
+        return this.header.get(key);
+    }
+
     /**
      * Generate HTTPResponse message string
      *

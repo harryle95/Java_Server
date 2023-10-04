@@ -45,12 +45,15 @@ public class RequestHandler implements Callable<HTTPResponse> {
     public HTTPResponse handleGET() {
         // Empty GET request
         String stationID = request.getURIEndPoint();
-        if (stationID == null)
+        if (stationID == null) {
+            String body = "{\"204\":\"No Content\", \"Message\": \"Please indicate stationID in GET request\"}";
             return new HTTPResponse("1.1")
                     .setStatusCode("204")
                     .setReasonPhrase("No Content")
                     .setHeader("Content-Type", "application/json")
-                    .setBody("");
+                    .setHeader("Content-Length", String.valueOf(body.length()))
+                    .setBody(body);
+        }
         // Station ID data is available
         if (database.containsKey(stationID)) {
             String body = "{\n" + database.get(stationID) + "\n}";
@@ -62,11 +65,13 @@ public class RequestHandler implements Callable<HTTPResponse> {
                     .setBody(body);
         }
         // Station ID data unavailable
+        String body = "{\"404\":\"Not Found\", \"Message\": \"The requested station ID is not on server\"}";
         return new HTTPResponse("1.1")
                 .setStatusCode("404")
                 .setReasonPhrase("Not Found")
                 .setHeader("Content-Type", "application/json")
-                .setBody("");
+                .setHeader("Content-Length", String.valueOf(body.length()))
+                .setBody(body);
     }
 
     public HTTPResponse handlePUT() throws InterruptedException {
@@ -143,10 +148,13 @@ public class RequestHandler implements Callable<HTTPResponse> {
             response = handleGET();
         else if (request.method.equals("PUT"))
             response = handlePUT();
-        else
+        else {
+            String body = "{\"400\":\"Bad Request\", \"Message\": \"Server only supports PUT/GET requests\"}";
             response = new HTTPResponse("1.1")
                     .setStatusCode("400")
-                    .setReasonPhrase("Bad Request");
+                    .setReasonPhrase("Bad Request").setHeader("Content-Length", request.header.get("Content-Length"))
+                    .setBody(body);
+        }
         return response;
     }
 
