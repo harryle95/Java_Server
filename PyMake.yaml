@@ -105,7 +105,7 @@ agg_server:
     option:
       logging: -Djava.util.logging.config.file=src/config/logging.properties
   cmd: |
-    #!/usr/bin/bash
+    #!/clearusr/bin/bash
     java $(logging) -cp $(OUTDIR) AggregationServer $(port)
 
 load_balancer:
@@ -132,10 +132,6 @@ get_client:
   cmd: |
     #!/usr/bin/bash
     java $(logging) -cp $(OUTDIR) GETClient $(hostname):$(port) $(stationID)
-
-
-
-
 
 content_server:
   var:
